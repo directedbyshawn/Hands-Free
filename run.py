@@ -52,12 +52,9 @@ def main():
         assert len(listdir(path)) != 0
         # all files are images
         for file_name in listdir(path):
-            assert file_name.lower().endswith('.jpg', '.png', '.jpeg')
+            assert file_name.lower().endswith(IMAGE_TYPES)
     else:
         raise InvalidInput
-
-    
-
 
 if __name__ == '__main__':
     main()

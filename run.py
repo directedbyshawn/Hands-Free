@@ -8,7 +8,7 @@ from re import A
 from turtle import shape
 from models.obstacles import ObstacleDetector
 from sys import argv
-from os import listdir
+from os import listdir, mkdir
 from os.path import exists, isfile, isdir
 from PIL import Image, ImageOps
 from numpy import asarray, full
@@ -72,7 +72,17 @@ def main():
         grayscale_image = ImageOps.grayscale(rgb_image)
         grayscale_image.show()
 
-        result = obstacles.test(grayscale_image)
+        # run image on obstacle detecting network
+        result = obstacles.test(original=rgb_image, grayscale=grayscale_image)
+
+        # save image
+        index = len(listdir('output'))
+        path = f'output/{index}'
+        mkdir(path)
+        result.save(f'{path}/result.jpg')
+
+
+
 
 
 

@@ -5,10 +5,13 @@
 '''
 
 from re import A
+from turtle import shape
 from models.obstacles import ObstacleDetector
 from sys import argv
 from os import listdir
 from os.path import exists, isfile, isdir
+from PIL import Image, ImageOps
+from numpy import asarray, full
 
 '''
 
@@ -17,6 +20,7 @@ from os.path import exists, isfile, isdir
             - 1: Single image (JPG/PNG)
             - 2: Directory of images (JPG/PNG)
             - 3: Video (mp4)
+            - 4. Train
         - 2: Path to directory or file
 
     ex. single image, directory, video
@@ -29,7 +33,11 @@ from os.path import exists, isfile, isdir
 IMAGE_TYPES = ('.jpg', '.png', '.jpeg')
 VIDEO_TYPES = ('.mp4')
 
+obstacles = ObstacleDetector()
+
 def main():
+
+    global obstacles
     
     # parse arguments
     assert len(argv) == 3
@@ -55,6 +63,20 @@ def main():
             assert file_name.lower().endswith(IMAGE_TYPES)
     else:
         raise InvalidInput
+
+    # single image
+    if input_type == 1:
+
+        # open image and convert to grayscale
+        rgb_image = Image.open(path)
+        grayscale_image = ImageOps.grayscale(rgb_image)
+        grayscale_image.show()
+
+        result = obstacles.test(grayscale_image)
+
+
+
+
 
 if __name__ == '__main__':
     main()

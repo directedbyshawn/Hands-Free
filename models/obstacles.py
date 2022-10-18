@@ -9,3 +9,9 @@ class ObstacleDetector():
 
     def __init__(self):
         self.__data = ""
+
+    def train():
+        pass
+
+    def test():
+        pass

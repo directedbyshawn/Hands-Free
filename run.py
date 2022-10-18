@@ -27,11 +27,22 @@ from numpy import asarray, full
         - python run.py 1 path/to/image.jpg
         - python run.py 2 path/to/images
         - python run.py 3 path/to/video.mp4
+        - python run.py 4 
 
 '''
 
+INPUT_TYPES = 4
+
 IMAGE_TYPES = ('.jpg', '.png', '.jpeg')
 VIDEO_TYPES = ('.mp4')
+
+TRAIN_OBSTACLES = True
+TRAIN_LANES = False
+TRAIN_SIGNS = False
+
+TEST_OBSTACLES = True
+TEST_LANES = False
+TEST_SIGNS = False
 
 obstacles = ObstacleDetector()
 
@@ -40,14 +51,16 @@ def main():
     global obstacles
     
     # parse arguments
-    assert len(argv) == 3
     assert int(argv[1])
-    assert int(argv[1]) >= 1 and int(argv[1]) <= 3
+    assert int(argv[1]) >= 1 and int(argv[1]) <= INPUT_TYPES
     input_type = int(argv[1])
+    path = ''
+    if (input_type != 4):
+        assert len(argv) == 3
+        path = argv[2]
+        assert exists(path)
 
     # validate input data
-    path = argv[2]
-    assert exists(path)
     if input_type == 1 or input_type == 3:
         assert isfile(path)
         if (input_type == 1):
@@ -61,30 +74,37 @@ def main():
         # all files are images
         for file_name in listdir(path):
             assert file_name.lower().endswith(IMAGE_TYPES)
+    elif input_type == 4:
+        assert exists('data/train')
+        assert len(listdir('data/train')) != 0
     else:
         raise InvalidInput
-
-    # single image
+    
+    # perform action
     if input_type == 1:
+
+        # SINGLE IMAGE
 
         # open image and convert to grayscale
         rgb_image = Image.open(path)
         grayscale_image = ImageOps.grayscale(rgb_image)
         grayscale_image.show()
 
-        # run image on obstacle detecting network
-        result = obstacles.test(original=rgb_image, grayscale=grayscale_image)
+        # test image on obstacle detecting network
+        result = rgb_image
+        if TEST_OBSTACLES:
+            result = obstacles.test(original=rgb_image, grayscale=grayscale_image)
 
         # save image
         index = len(listdir('output'))
         path = f'output/{index}'
         mkdir(path)
         result.save(f'{path}/result.jpg')
+    elif input_type == 4:
 
+        # TRAINING
 
-
-
-
+        print(len(listdir('data/train')))
 
 
 

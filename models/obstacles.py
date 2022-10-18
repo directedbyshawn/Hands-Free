@@ -10,7 +10,7 @@ class ObstacleDetector():
     def __init__(self):
         self.__data = ""
 
-    def train(self):
+    def train(self, images, labels):
         pass
 
     def test(self, original, grayscale):

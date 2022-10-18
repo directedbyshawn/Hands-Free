@@ -3,5 +3,7 @@ __pycache__
 venv
 input/*
 output/*
+data/*
+!data/info.md
 !input/info.md
 !output/info.md

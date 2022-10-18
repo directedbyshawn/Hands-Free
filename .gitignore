@@ -3,5 +3,5 @@ __pycache__
 venv
 input/*
 output/*
-!input/info.md
-!output/info.md
+data/*
+!*/README.md

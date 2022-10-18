@@ -4,6 +4,6 @@ venv
 input/*
 output/*
 data/*
-!data/info.md
+!data/README.md
 !input/info.md
 !output/info.md

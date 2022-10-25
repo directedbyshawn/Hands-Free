@@ -4,6 +4,8 @@
 
 '''
 
+# TODO: Add parameter for how many images to train on 
+
 from re import A
 from turtle import shape
 from models.obstacles import ObstacleDetector
@@ -20,14 +22,14 @@ import json
             - 1: Single image (JPG/PNG)
             - 2: Directory of images (JPG/PNG)
             - 3: Video (mp4)
-            - 4. Train
+            - 4. Training
         - 2: Path to directory or file
 
     ex. single image, directory, video
         - python run.py 1 path/to/image.jpg
         - python run.py 2 path/to/images
         - python run.py 3 path/to/video.mp4
-        - python run.py 4 
+        - python run.py 4 number_of_images_to_use
 
 '''
 
@@ -106,20 +108,28 @@ def main():
     elif input_type == 4:
 
         # TRAINING
+
+        # get labels
         label_path = 'data/labels/bdd100k_labels_images_train.json'
         with open(label_path) as file:
             labels = json.load(file)
 
-        count = 0
-        for i in range(1000):
-            name = labels[i]['name']
-            if exists(f'data/train/{name}'):
-                count += 1
+        # get images from labels
+        rgb_images = []
+        grayscale_images = []
+        for label in labels:
+            file_name = label['name']
+            path = f'data/train/{file_name}'
+            if exists(path):
+                rgb_image = Image.open(path)
+                rgb_images.append(rgb_image)
+                grayscale_image = ImageOps.grayscale(rgb_image)
+                grayscale_images.append(grayscale_image)
 
-        print(count)
-
-        
-
+        # train model
+        obstacles.train(grayscale=grayscale_images, 
+                        rgb=rgb_images, 
+                        labels=labels)
 
 if __name__ == '__main__':
     main()

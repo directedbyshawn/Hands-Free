@@ -11,7 +11,7 @@ from sys import argv
 from os import listdir, mkdir
 from os.path import exists, isfile, isdir
 from PIL import Image, ImageOps
-from numpy import asarray, full
+import json
 
 '''
 
@@ -77,6 +77,8 @@ def main():
     elif input_type == 4:
         assert exists('data/train')
         assert len(listdir('data/train')) != 0
+        assert exists('data/labels')
+        assert len(listdir('data/labels')) != 0
     else:
         raise InvalidInput
     
@@ -100,12 +102,23 @@ def main():
         path = f'output/{index}'
         mkdir(path)
         result.save(f'{path}/result.jpg')
+
     elif input_type == 4:
 
         # TRAINING
+        label_path = 'data/labels/bdd100k_labels_images_train.json'
+        with open(label_path) as file:
+            labels = json.load(file)
 
-        print(len(listdir('data/train')))
+        count = 0
+        for i in range(1000):
+            name = labels[i]['name']
+            if exists(f'data/train/{name}'):
+                count += 1
 
+        print(count)
+
+        
 
 
 if __name__ == '__main__':

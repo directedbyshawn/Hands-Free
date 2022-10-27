@@ -12,7 +12,7 @@ import numpy as np
 import os
 
 # Constants needed
-FILENAME = 'YellowUnderShade.jpg'
+FILENAMES = ['YellowUnderShade.jpg', 'YellowWhite.jpg'] # list of photos to load
 
 '''
 	Function to display the images of the road. Can be called before
@@ -134,31 +134,33 @@ def find_draw_edges(edge_img, img):
 	and sets up the needed params to run the program
 '''
 def main():
-    # load image
-    img = img_load(FILENAME)
+    # load images
+    imgs = []
+    for filename in FILENAMES:
+        imgs.append(img_load(filename))
 	
 	# transform the image
-    transformed_img = prep_img(img)
+    transformed_imgs = [prep_img(img) for img in imgs]
 	
 	# detect the edges
-    edges = edge_detect(transformed_img)
+    edges = [edge_detect(img) for img in transformed_imgs]
     
     
     # select a good region
-    rows, cols = edges.shape[:2]
-    bottom_left = [cols * 0.1, rows * 0.95]
-    top_left = [cols * 0.4, rows * .6]
-    bottom_right = [cols * 0.9, rows * 0.95]
-    top_right = [cols * 0.6, rows * 0.6]
-    vertices = np.array([[bottom_left, top_left, top_right, bottom_right]], dtype=np.int32)
-    
-    cropped_lanes = select_lane_region(edges, vertices)
+    cropped_lanes = []
+    for img in edges:
+        rows, cols = img.shape[:2]
+        bottom_left = [cols * 0.1, rows * 0.95]
+        top_left = [cols * 0.4, rows * .6]
+        bottom_right = [cols * 0.9, rows * 0.95]
+        top_right = [cols * 0.6, rows * 0.6]
+        vertices = np.array([[bottom_left, top_left, top_right, bottom_right]], dtype=np.int32)
+        cropped_lanes.append(select_lane_region(img, vertices))
     
     # find and draw the lines
-    output = find_draw_edges(cropped_lanes, img)
+    outputs = [find_draw_edges(cropped, img) for cropped, img in zip(cropped_lanes, imgs)]
            
 	# show the image
-    images = [output]
-    show_images(images)
+    show_images(outputs)
     
 main()

@@ -6,14 +6,14 @@
 
 # TODO: Add parameter for how many images to train on 
 
-from re import A
-from turtle import shape
 from models.obstacles import ObstacleDetector
 from sys import argv
 from os import listdir, mkdir
 from os.path import exists, isfile, isdir
 from PIL import Image, ImageOps
+import numpy as np
 import json
+
 
 '''
 
@@ -45,6 +45,8 @@ TRAIN_SIGNS = False
 TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
+
+TRAINING_SIZE = 100
 
 obstacles = ObstacleDetector()
 
@@ -117,6 +119,7 @@ def main():
         # get images from labels
         rgb_images = []
         grayscale_images = []
+        count = 0
         for label in labels:
             file_name = label['name']
             path = f'data/train/{file_name}'
@@ -125,11 +128,31 @@ def main():
                 rgb_images.append(rgb_image)
                 grayscale_image = ImageOps.grayscale(rgb_image)
                 grayscale_images.append(grayscale_image)
+            count += 1
+            if count > TRAINING_SIZE:
+                break
 
-        # train model
-        obstacles.train(grayscale=grayscale_images, 
-                        rgb=rgb_images, 
+        converted_grayscale = convert_grayscale(grayscale_images)
+
+        # obstacles
+        obstacles.train(rgb=rgb_images, 
+                        grayscale=converted_grayscale,
                         labels=labels)
+
+'''
+
+    Convert grayscale images to matrix of
+    decimal values ranging from 0 to 1
+
+'''
+def convert_grayscale(images):
+    converted = []
+    for image in images:
+        image_matrix = np.array(image)
+        image_matrix = image_matrix / 255
+        converted.append(np.array(image_matrix))
+    return converted
+
 
 if __name__ == '__main__':
     main()

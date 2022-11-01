@@ -9,8 +9,6 @@ import imageio
 import glob
 import cv2
 
-import keras
-import pickle
 import pandas as pd
 import random
 from sklearn.model_selection import train_test_split

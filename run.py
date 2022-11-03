@@ -6,14 +6,13 @@
 
 # TODO: Add parameter for how many images to train on 
 
-from models.obstacles import ObstacleDetector
+from models.object_detection import ObjectDetector
 from sys import argv
 from os import listdir, mkdir
 from os.path import exists, isfile, isdir
-from PIL import Image, ImageOps
+from PIL import Image
 import numpy as np
 import json
-
 
 '''
 
@@ -48,11 +47,11 @@ TEST_SIGNS = False
 
 TRAINING_SIZE = 100
 
-obstacles = ObstacleDetector()
+object_detector = ObjectDetector()
 
 def main():
 
-    global obstacles
+    global object_detector
     
     # parse arguments
     assert int(argv[1])
@@ -92,6 +91,7 @@ def main():
         # SINGLE IMAGE
 
         # open image and convert to grayscale
+        '''
         rgb_image = Image.open(path)
         grayscale_image = ImageOps.grayscale(rgb_image)
         grayscale_image.show()
@@ -99,13 +99,14 @@ def main():
         # test image on obstacle detecting network
         result = rgb_image
         if TEST_OBSTACLES:
-            result = obstacles.test(original=rgb_image, grayscale=grayscale_image)
+            result = object_detector.test(original=rgb_image, grayscale=grayscale_image)
 
         # save image
         index = len(listdir('output'))
         path = f'output/{index}'
         mkdir(path)
         result.save(f'{path}/result.jpg')
+        '''
 
     elif input_type == 4:
 
@@ -117,42 +118,20 @@ def main():
             labels = json.load(file)
 
         # get images from labels
-        rgb_images = []
-        grayscale_images = []
-        count = 0
-        for label in labels:
+        images = {}
+        for index, label in enumerate(labels):
             file_name = label['name']
             path = f'data/train/{file_name}'
             if exists(path):
-                rgb_image = Image.open(path)
-                rgb_images.append(rgb_image)
-                grayscale_image = ImageOps.grayscale(rgb_image)
-                grayscale_images.append(grayscale_image)
-            count += 1
-            if count > TRAINING_SIZE:
+                image = Image.open(path)
+                images[path] = image
+            else:
+                print(f'Cant find: {path}')
+            if index > TRAINING_SIZE:
                 break
 
-        converted_grayscale = convert_grayscale(grayscale_images)
-
         # obstacles
-        obstacles.train(rgb=rgb_images, 
-                        grayscale=converted_grayscale,
-                        labels=labels)
-
-'''
-
-    Convert grayscale images to matrix of
-    decimal values ranging from 0 to 1
-
-'''
-def convert_grayscale(images):
-    converted = []
-    for image in images:
-        image_matrix = np.array(image)
-        image_matrix = image_matrix / 255
-        converted.append(np.array(image_matrix))
-    return converted
-
+        object_detector.train(images=images, labels=labels)
 
 if __name__ == '__main__':
     main()

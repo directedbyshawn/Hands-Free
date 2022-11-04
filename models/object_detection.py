@@ -30,12 +30,12 @@ class ObjectDetector():
             model = self.create_model()
    
     def preprocess(self, images):
-        processed = []
-        for image in images:
+        processed = {}
+        for file_name, image in images:
             grayscale_image = ImageOps.grayscale(image)
             image_matrix = np.array(grayscale_image)
             image_matrix = image_matrix / 255
-            processed.append(np.array(image_matrix))
+            processed[file_name] = image_matrix
         return processed
 
     def load_model(self):

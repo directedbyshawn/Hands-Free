@@ -18,31 +18,45 @@ class ObjectDetector():
 
     def train(self, images, labels):
 
-        print("TRAINING")
-
         images = self.preprocess(images)
-
-        print(images[0])
 
         if self.__LOAD_MODEL:
             model = self.load_model()
         else:
             model = self.create_model()
-   
+
+    
     def preprocess(self, images):
-        processed = []
-        for image in images:
+
+        '''
+    
+            Preprocess images by converting them to a matrix of 
+            grayscale values, and then converting the values to 
+            decimal between 0 and 1
+
+            Params:
+                images (dict) : dictionary mapping image filenames to PIL images
+
+            Returns:
+                processed (dict) : dictionary mapping images filenames to 
+                                   grayscale matricies
+
+        '''
+
+        processed = {}
+        for file_name in images:
+            image = images[file_name]
             grayscale_image = ImageOps.grayscale(image)
             image_matrix = np.array(grayscale_image)
             image_matrix = image_matrix / 255
-            processed.append(np.array(image_matrix))
+            processed[file_name] = image_matrix
         return processed
 
     def load_model(self):
         pass
 
     def create_model(self):
-        pass
+        print("Creating model")
 
     def test(self, rgb, grayscale, labels):
         pass

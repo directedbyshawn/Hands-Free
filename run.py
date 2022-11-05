@@ -4,8 +4,6 @@
 
 '''
 
-# TODO: Add parameter for how many images to train on 
-
 from models.object_detection import ObjectDetector
 from sys import argv
 from os import listdir, mkdir
@@ -28,7 +26,7 @@ import json
         - python run.py 1 path/to/image.jpg
         - python run.py 2 path/to/images
         - python run.py 3 path/to/video.mp4
-        - python run.py 4 number_of_images_to_use
+        - python run.py 4
 
 '''
 
@@ -58,14 +56,13 @@ def main():
     assert int(argv[1]) >= 1 and int(argv[1]) <= INPUT_TYPES
     input_type = int(argv[1])
     path = ''
-    if (input_type != 4):
-        assert len(argv) == 3
-        path = argv[2]
-        assert exists(path)
 
     # validate input data
     if input_type == 1 or input_type == 3:
         assert isfile(path)
+        assert len(argv) == 3
+        path = argv[2]
+        assert exists(path)
         if (input_type == 1):
             assert path.lower().endswith(IMAGE_TYPES)
         else:
@@ -119,7 +116,7 @@ def main():
 
         # get images from labels
         images = {}
-        for index, label in enumerate(labels):
+        for index, label in enumerate(labels): 
             file_name = label['name']
             path = f'data/train/{file_name}'
             if exists(path):
@@ -127,11 +124,12 @@ def main():
                 images[path] = image
             else:
                 print(f'Cant find: {path}')
-            if index > TRAINING_SIZE:
+            if index >= TRAINING_SIZE-1:
                 break
 
         # obstacles
-        object_detector.train(images=images, labels=labels)
+        if TRAIN_OBSTACLES:
+            object_detector.train(images=images, labels=labels)
 
 if __name__ == '__main__':
     main()

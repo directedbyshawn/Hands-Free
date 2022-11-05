@@ -5,10 +5,9 @@
 
 '''
 
-import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import ImageOps
 
 class ObjectDetector():
 
@@ -35,11 +34,12 @@ class ObjectDetector():
             decimal between 0 and 1
 
             Params:
-                images (dict) : dictionary mapping image filenames to PIL images
+                images (dict) : dictionary mapping image filenames 
+                                to PIL images
 
             Returns:
-                processed (dict) : dictionary mapping images filenames to 
-                                   grayscale matricies
+                processed (dict) : dictionary mapping images filenames 
+                                   to grayscale matricies
 
         '''
 

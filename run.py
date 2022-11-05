@@ -6,10 +6,9 @@
 
 from models.object_detection import ObjectDetector
 from sys import argv
-from os import listdir, mkdir
+from os import listdir
 from os.path import exists, isfile, isdir
 from PIL import Image
-import numpy as np
 import json
 
 '''

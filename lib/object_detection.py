@@ -22,7 +22,7 @@ class ObjectDetector():
         self.__LOAD_MODEL = False
         self.__TRAINING_SIZE = training_size
         self.__data_loaded = False
-        self.device = torch.device('cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.originals = {}
         self.preprocessed = {}
         self.labels = []
@@ -42,10 +42,6 @@ class ObjectDetector():
 
         # use cuda cores if available
         self.check_for_gpu()
-
-    def check_for_gpu(self):
-        ''' Use GPU for computation if available '''
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def load_training_data(self, images, labels):
 

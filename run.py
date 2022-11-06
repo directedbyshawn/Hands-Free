@@ -4,7 +4,7 @@
 
 '''
 
-from models.object_detection import ObjectDetector
+from lib.object_detection import ObjectDetector
 from sys import argv
 from os import listdir
 from os.path import exists, isfile, isdir

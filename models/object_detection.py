@@ -27,7 +27,7 @@ class ObjectDetector():
         self.preprocessed = {}
         self.labels = []
         self.training_instances = []
-        self.class_map = {
+        self.CLASS_MAP = {
             'pedestrian': 1,
             'rider': 2,
             'car': 3,
@@ -71,7 +71,7 @@ class ObjectDetector():
             for object_raw in label['labels']:
                 
                 # exclude segmentation labels
-                if object_raw['category'] not in self.class_map.keys():
+                if object_raw['category'] not in self.CLASS_MAP.keys():
                     continue
 
                 # object class

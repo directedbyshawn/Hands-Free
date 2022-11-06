@@ -1,6 +1,6 @@
 '''
 
-    Driver for autonomous vehicle image classification.
+    Driver for autonomous vehicle image assistance.
 
 '''
 
@@ -42,9 +42,9 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-TRAINING_SIZE = 100
+TRAINING_SIZE = 10
 
-object_detector = ObjectDetector()
+object_detector = ObjectDetector(training_size=TRAINING_SIZE)
 
 def main():
 
@@ -108,27 +108,42 @@ def main():
 
         # TRAINING
 
-        # get labels
+        # load labels
         label_path = 'data/labels/bdd100k_labels_images_train.json'
-        with open(label_path) as file:
-            labels = json.load(file)
+        labels = load_labels(label_path)
+    
+        # load images from labels
+        images = load_training_images(labels)
 
-        # get images from labels
-        images = {}
-        for index, label in enumerate(labels): 
-            file_name = label['name']
-            path = f'data/train/{file_name}'
-            if exists(path):
-                image = Image.open(path)
-                images[path] = image
-            else:
-                print(f'Cant find: {path}')
-            if index >= TRAINING_SIZE-1:
-                break
-
-        # obstacles
         if TRAIN_OBSTACLES:
-            object_detector.train(images=images, labels=labels)
+            object_detector.load_training_data(images=images, labels=labels)
+            object_detector.train()
+
+def load_labels(path):
+
+    ''' Load labels from file '''
+
+    labels = None
+    with open(path) as file:
+        labels = json.load(file)
+    return labels
+
+def load_training_images(labels):
+
+    ''' Create dictionary mapping file names to images '''
+
+    images = {}
+    for index, label in enumerate(labels): 
+        file_name = label['name']
+        path = f'data/train/{file_name}'
+        if exists(path):
+            image = Image.open(path)
+            images[path] = image
+        else:
+            print(f'Cant find: {path}')
+        if index >= TRAINING_SIZE-1:
+            break
+    return images
 
 if __name__ == '__main__':
     main()

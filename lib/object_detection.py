@@ -5,16 +5,22 @@
 
 '''
 
-import torch
-import torchvision
-import torch.nn as nn
-import torch.nn.functional as F
-from torchvision import transforms
 from .instance_data import Instance, Object, Box
+from tflite_model_maker.config import ExportFormat, QuantizationConfig
+from tflite_model_maker import model_spec
+from tflite_model_maker import object_detector
+from tflite_support import metadata
+import tensorflow as tf
+from absl import logging
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
+import os
 from PIL import ImageOps
+from absl import logging
+
+tf.get_logger().setLevel('ERROR')
+logging.set_verbosity(logging.ERROR)
+assert tf.__version__.startswith('2')
 
 class ObjectDetector():
 
@@ -22,7 +28,6 @@ class ObjectDetector():
         self.__LOAD_MODEL = False
         self.__TRAINING_SIZE = training_size
         self.__data_loaded = False
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.originals = {}
         self.preprocessed = {}
         self.labels = []
@@ -98,34 +103,8 @@ class ObjectDetector():
         if not self.__data_loaded:
             raise Exception
         
-        self.print_instance(0)
+        self.generate_xml()
     
-    def print_instance(self, index):
-
-        '''
-        
-            Formatted print of training instance
-            at specified index
-
-            Params:
-                index (int) : index of instance
-
-        '''
-
-        for _ in range(50):
-            print('-', end='')
-        print()
-
-        instance = self.training_instances[index]
-        print(f'Training instance #{index}')
-        print(f'File name: {instance.file_name}')
-        instance.original.show()
-        print(instance.preprocessed)
-        print("Objects in image: ")
-        for object in instance.objects:
-            print(f'\n{object.class_name} with box:')
-            print(f'x1: {object.box.x1}, y1: {object.box.y1}\nx2: {object.box.x2}, y2: {object.box.y2}\n')
-
     def preprocess(self, images):
 
         '''
@@ -153,6 +132,14 @@ class ObjectDetector():
             processed[file_name] = image_matrix
         return processed
 
+    def generate_xml(self):
+
+        count = 0
+        for instance in self.training_instances:
+            instance.repr()
+            count += 1
+            if count >= 5:
+                break
     
 
 

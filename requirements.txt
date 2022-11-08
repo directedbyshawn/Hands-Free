@@ -1,8 +1,5 @@
-pillow==9.2.*
-numpy==1.23.*
-matplotlib==3.6.*
-scikit-learn==1.1.*
-six==1.16.*
-torch==1.13.*
-torchvision==0.14.*
-opencv-python==4.6.*
+pillow
+numpy
+matplotlib
+tflite-model-maker
+tflite-support

@@ -6,21 +6,24 @@
 '''
 
 from .instance_data import Instance, Object, Box
-from tflite_model_maker.config import ExportFormat, QuantizationConfig
-from tflite_model_maker import model_spec
-from tflite_model_maker import object_detector
-from tflite_support import metadata
-import tensorflow as tf
-from absl import logging
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 from PIL import ImageOps
-from absl import logging
+from detecto import core, utils, visualize
+import torch
 
-tf.get_logger().setLevel('ERROR')
-logging.set_verbosity(logging.ERROR)
-assert tf.__version__.startswith('2')
+CLASS_MAP = {
+    'pedestrian': 1,
+    'rider': 2,
+    'car': 3,
+    'truck': 4,
+    'bus': 5,
+    'train': 6,
+    'motorcycle': 7,
+    'bicycle': 8,
+    'traffic light': 9,
+    'traffic sign': 10
+}
 
 class ObjectDetector():
 
@@ -28,25 +31,12 @@ class ObjectDetector():
         self.__LOAD_MODEL = False
         self.__TRAINING_SIZE = training_size
         self.__data_loaded = False
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = core.Model(list(CLASS_MAP.keys()))
         self.originals = {}
         self.preprocessed = {}
         self.labels = []
         self.training_instances = []
-        self.CLASS_MAP = {
-            'pedestrian': 1,
-            'rider': 2,
-            'car': 3,
-            'truck': 4,
-            'bus': 5,
-            'train': 6,
-            'motorcycle': 7,
-            'bicycle': 8,
-            'traffic light': 9,
-            'traffic sign': 10
-        }
-
-        # use cuda cores if available
-        self.check_for_gpu()
 
     def load_training_data(self, images, labels):
 
@@ -134,12 +124,7 @@ class ObjectDetector():
 
     def generate_xml(self):
 
-        count = 0
-        for instance in self.training_instances:
-            instance.repr()
-            count += 1
-            if count >= 5:
-                break
+        pass
     
 
 

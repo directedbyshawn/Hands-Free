@@ -1,5 +1,4 @@
 pillow
 numpy
 matplotlib
-tflite-model-maker
-tflite-support
+detecto

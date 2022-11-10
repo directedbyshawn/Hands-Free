@@ -42,7 +42,7 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-TRAINING_SIZE = 10
+TRAINING_SIZE = 5
 
 object_detector = ObjectDetector(training_size=TRAINING_SIZE)
 
@@ -58,9 +58,9 @@ def main():
 
     # validate input data
     if input_type == 1 or input_type == 3:
+        path = argv[2]
         assert isfile(path)
         assert len(argv) == 3
-        path = argv[2]
         assert exists(path)
         if (input_type == 1):
             assert path.lower().endswith(IMAGE_TYPES)
@@ -86,7 +86,11 @@ def main():
 
         # SINGLE IMAGE
 
+        object_detector.predict(path)
+
         # open image and convert to grayscale
+
+        
         '''
         rgb_image = Image.open(path)
         grayscale_image = ImageOps.grayscale(rgb_image)

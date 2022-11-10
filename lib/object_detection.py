@@ -6,10 +6,13 @@
 '''
 
 from .instance_data import Instance, Object, Box
+from xml.etree.ElementTree import Element, SubElement, ElementTree
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 from PIL import ImageOps
 from detecto import core, utils, visualize
+from detecto.visualize import show_labeled_image, plot_prediction_grid
 import torch
 
 CLASS_MAP = {
@@ -28,7 +31,8 @@ CLASS_MAP = {
 class ObjectDetector():
 
     def __init__(self, training_size):
-        self.__LOAD_MODEL = False
+        self.__SAVE_MODEL = False
+        self.__LOAD_MODEL = True
         self.__TRAINING_SIZE = training_size
         self.__data_loaded = False
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -37,6 +41,7 @@ class ObjectDetector():
         self.preprocessed = {}
         self.labels = []
         self.training_instances = []
+        self.dataset = None
 
     def load_training_data(self, images, labels):
 
@@ -62,7 +67,7 @@ class ObjectDetector():
             for object_raw in label['labels']:
                 
                 # exclude segmentation labels
-                if object_raw['category'] not in self.CLASS_MAP.keys():
+                if object_raw['category'] not in CLASS_MAP.keys():
                     continue
 
                 # object class
@@ -93,8 +98,35 @@ class ObjectDetector():
         if not self.__data_loaded:
             raise Exception
         
+        # generate xml files for each training instance
         self.generate_xml()
-    
+
+        # create dataset from labels and images
+        self.dataset = core.Dataset('data/labels/train', 'data/train')
+
+        if self.__LOAD_MODEL:
+            path = 'data/models/horrible_stupid_model.pth'
+            self.model = core.Model.load(path, self.device)
+
+        # train model on dataset
+        self.model.fit(self.dataset, epochs=3, verbose=True)
+
+        if self.__SAVE_MODEL:
+            self.model.save('models/horrible_stupid_model.pth')
+
+
+    def predict(self, path):
+
+        model_path = 'models/horrible_stupid_model.pth'
+        self.model = core.Model.load(path, classes=list(CLASS_MAP.keys()))
+
+        image_path = 'data/test/yert.jpg'
+        image = utils.read_image(image_path)
+        predictions = self.model.predict(image)
+
+        labels, boxes, scores = predictions
+        show_labeled_image(image, boxes, labels)
+
     def preprocess(self, images):
 
         '''
@@ -124,7 +156,44 @@ class ObjectDetector():
 
     def generate_xml(self):
 
-        pass
+        '''
+
+            Generate xml files for each training instance
+
+        '''
+
+        for instance in self.training_instances:
+
+            # reuse duplicate documents
+            path = f'data/labels/train/{instance.file_name[:-4]}.xml'
+            if os.path.exists(path):
+                continue
+
+            # create document
+            root = Element('annotation')
+            SubElement(root, 'folder').text = 'data/train'
+            SubElement(root, 'filename').text = instance.file_name
+            SubElement(root, 'path').text = f'data/train/{instance.file_name}'
+            source = SubElement(root, 'source')
+            SubElement(source, 'database').text = 'BDD 100K'
+            size = SubElement(root, 'size')
+            SubElement(size, 'width').text = str(instance.original.width)
+            SubElement(size, 'height').text = str(instance.original.height)
+            SubElement(size, 'depth').text = '3'
+            SubElement(root, 'segmented').text = '0'
+            for object in instance.objects:
+                object_xml = SubElement(root, 'object')
+                SubElement(object_xml, 'name').text = object.class_name
+                SubElement(object_xml, 'pose').text = 'Unspecified'
+                SubElement(object_xml, 'truncated').text = '0'
+                SubElement(object_xml, 'difficult').text = '0'
+                box = SubElement(object_xml, 'bndbox')
+                SubElement(box, 'xmin').text = str(object.box.x1)
+                SubElement(box, 'ymin').text = str(object.box.y1)
+                SubElement(box, 'xmax').text = str(object.box.x2)
+                SubElement(box, 'ymax').text = str(object.box.y2)
+            tree = ElementTree(root)
+            tree.write(f'data/labels/train/{instance.file_name[:-4]}.xml')
     
 
 

@@ -4,5 +4,6 @@ venv
 input/*
 output/*
 data/*
+models/*
 !*/README.md
 test

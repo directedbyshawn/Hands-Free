@@ -31,12 +31,13 @@ CLASS_MAP = {
 class ObjectDetector():
 
     def __init__(self, training_size):
-        self.__SAVE_MODEL = False
+        self.__SAVE_MODEL = True
         self.__LOAD_MODEL = True
         self.__TRAINING_SIZE = training_size
         self.__data_loaded = False
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = core.Model(list(CLASS_MAP.keys()))
+        self.classes = list(CLASS_MAP.keys())
+        self.model = ''
         self.originals = {}
         self.preprocessed = {}
         self.labels = []
@@ -104,23 +105,24 @@ class ObjectDetector():
         # create dataset from labels and images
         self.dataset = core.Dataset('data/labels/train', 'data/train')
 
-        if self.__LOAD_MODEL:
-            path = 'data/models/horrible_stupid_model.pth'
-            self.model = core.Model.load(path, self.device)
-
         # train model on dataset
-        self.model.fit(self.dataset, epochs=3, verbose=True)
+        print(torch.cuda.is_available())
+        print(self.device)
+        self.model = core.Model(classes=self.classes, device=torch.device('cuda'))
+        self.model.fit(self.dataset, epochs=10, verbose=True, device=self.device)
 
         if self.__SAVE_MODEL:
-            self.model.save('models/horrible_stupid_model.pth')
+            self.model.save('models/faster_rcnn_2.pth')
 
 
     def predict(self, path):
 
-        model_path = 'models/horrible_stupid_model.pth'
-        self.model = core.Model.load(path, classes=list(CLASS_MAP.keys()))
+        model_path = 'models/faster_rcnn_1.pth'
+        self.model = core.Model(classes=self.classes, device=self.device)
+        self.model = core.Model.load(model_path, classes=list(CLASS_MAP.keys()))
 
-        image_path = 'data/test/yert.jpg'
+        image_path = 'data/test/cabc30fc-e7726578.jpg'
+        print(os.path.exists(image_path))
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 

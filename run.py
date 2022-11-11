@@ -42,7 +42,7 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-TRAINING_SIZE = 5
+TRAINING_SIZE = 500
 
 object_detector = ObjectDetector(training_size=TRAINING_SIZE)
 

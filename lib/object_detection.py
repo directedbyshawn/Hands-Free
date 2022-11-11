@@ -109,7 +109,7 @@ class ObjectDetector():
         print(torch.cuda.is_available())
         print(self.device)
         self.model = core.Model(classes=self.classes, device=torch.device('cuda'))
-        self.model.fit(self.dataset, epochs=10, verbose=True, device=self.device)
+        self.model.fit(self.dataset, epochs=10, verbose=True)
 
         if self.__SAVE_MODEL:
             self.model.save('models/faster_rcnn_2.pth')
@@ -117,16 +117,18 @@ class ObjectDetector():
 
     def predict(self, path):
 
-        model_path = 'models/faster_rcnn_1.pth'
+        model_path = 'models/faster_rcnn_2.pth'
         self.model = core.Model(classes=self.classes, device=self.device)
         self.model = core.Model.load(model_path, classes=list(CLASS_MAP.keys()))
 
-        image_path = 'data/test/cabc30fc-e7726578.jpg'
-        print(os.path.exists(image_path))
+        image_path = 'data/test/cac07407-0eb1c8bf.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
         labels, boxes, scores = predictions
+        print(labels)
+        print(boxes)
+        print(scores)
         show_labeled_image(image, boxes, labels)
 
     def preprocess(self, images):

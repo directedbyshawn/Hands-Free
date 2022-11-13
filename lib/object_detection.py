@@ -15,23 +15,31 @@ from detecto.visualize import show_labeled_image, plot_prediction_grid
 from shutil import rmtree
 import torch
 import config
+from time import sleep
+from torchvision import transforms
 
 class ObjectDetector():
 
-    def __init__(self, training_size):
+    def __init__(self, training_size, validation_size):
         self.__SAVE_MODEL = True
         self.__TRAINING_SIZE = training_size
+        self.__VALIDATION_SIZE = validation_size
         self.__data_loaded = False
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.__CLASSES = list(config.OD_CLASS_MAP.keys())
+        self.training_labels = []
+        self.validation_labels =[]
         self.model = ''
         self.originals = {}
         self.training_instances = []
+        self.validation_instances = []
         self.dataset = None
 
-    def load_training_data(self, labels):
+    def load_data(self, type):
 
         # create instance class for each training instance
+        labels = self.training_labels if type == Type.TRAINING else self.validation_labels
+        max = self.__TRAINING_SIZE if type == Type.TRAINING else self.__VALIDATION_SIZE
         for index, label in enumerate(labels):
             
             # file name, original rgb, and grayscale matrix
@@ -61,33 +69,64 @@ class ObjectDetector():
                 objects.append(object)
 
             instance.objects = objects
+            if type == Type.TRAINING:
+                self.training_instances.append(instance)
+            else:
+                self.validation_instances.append(instance)
 
-            self.training_instances.append(instance)
-
-            if index >= self.__TRAINING_SIZE-1:
+            if index >= max-1:
                 break
 
         # create xml files
-        self.generate_xml(Type.TRAINING)
+        self.generate_xml(Type.TRAINING if type == Type.TRAINING else Type.VALIDATION)
 
         self.__data_loaded = True
 
-    def train(self, labels):
+    def train(self):
 
-        self.load_training_data(labels)
+        self.load_data(type=Type.TRAINING)
+        self.load_data(type=Type.VALIDATION)
         
         if not self.__data_loaded:
             raise Exception
+
+        augmentations = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.ColorJitter(saturation=0.5),
+            transforms.ToTensor(),
+            utils.normalize_transform(),
+        ])
         
-        # create dataset from labels and images
+        # create training dataset from labels and images
         self.dataset = core.Dataset(
             label_data='data/labels/training', 
-            image_folder='data/images/training'
+            image_folder='data/images/training',
+            transform=augmentations
         )
+
+        print(self.dataset[0])
+
+        if config.OD_VALIDATE:
+            validation_dataset = core.Dataset(
+                label_data='data/labels/validation',
+                image_folder='data/images/validation',
+                transform=augmentations
+            )
+        else:
+            validation_dataset = None
+        
 
         # train model on dataset
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
-        self.model.fit(self.dataset, epochs=config.OD_HYPER['epochs'], verbose=True)
+        losses = self.model.fit(
+            self.dataset, 
+            val_dataset=validation_dataset,
+            epochs=config.OD_HYPER['epochs'], 
+            verbose=True
+        )
+
+        plt.plot(losses)
 
         if self.__SAVE_MODEL:
             existing = len(os.listdir('models'))
@@ -118,20 +157,25 @@ class ObjectDetector():
         '''
         labels = images = ''
         if instance_type == Type.TRAINING:
-             labels = 'data/labels/training/'
-             images = 'data/images/training/'
+             labels = 'data/labels/training'
+             images = 'data/images/training'
         else:
-            labels = 'data/labels/validation/'
-            images = 'data/images/validation/'
+            labels = 'data/labels/validation'
+            images = 'data/images/validation'
 
         # remove existing files
         rmtree(labels, ignore_errors=True)
         os.mkdir(labels)
 
-        for instance in self.training_instances:
+        if instance_type == Type.TRAINING:
+            instances = self.training_instances
+        else:
+            instances = self.validation_instances
+
+        for instance in instances:
 
             # reuse duplicate documents
-            path = f'{labels}{instance.file_name[:-4]}.xml'
+            path = f'{labels}/{instance.file_name[:-4]}.xml'
             if os.path.exists(path):
                 continue
 
@@ -139,7 +183,7 @@ class ObjectDetector():
             root = Element('annotation')
             SubElement(root, 'folder').text = images
             SubElement(root, 'filename').text = instance.file_name
-            SubElement(root, 'path').text = f'{images}{instance.file_name}'
+            SubElement(root, 'path').text = f'{images}/{instance.file_name}'
             source = SubElement(root, 'source')
             SubElement(source, 'database').text = 'BDD 100K'
             size = SubElement(root, 'size')
@@ -159,7 +203,7 @@ class ObjectDetector():
                 SubElement(box, 'xmax').text = str(int(object.box.x2))
                 SubElement(box, 'ymax').text = str(int(object.box.y2))
             tree = ElementTree(root)
-            tree.write(f'{labels}{instance.file_name[:-4]}.xml')
+            tree.write(f'{labels}/{instance.file_name[:-4]}.xml')
     
 
 

@@ -18,9 +18,12 @@ TEST_LANES = False
 TEST_SIGNS = False
 
 OD_TRAINING_SIZE = 300
-OD_VALIDATION_SIZE = 10
+OD_VALIDATION_SIZE = 100
+
+OD_VALIDATE = True
 
 OD_TRAINING_LABELS_PATH = 'data/labels/bdd100k_labels_images_train.json'
+OD_VALIDATION_LABELS_PATH = 'data/labels/bdd100k_labels_images_val.json'
 
 OD_CLASS_MAP = {
     'pedestrian': 1,
@@ -36,7 +39,7 @@ OD_CLASS_MAP = {
 }
 
 OD_HYPER = {
-    'epochs': 6, 
+    'epochs': 5, 
     'batch_size': 2,
     'learning_rate': 0.001
 }

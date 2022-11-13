@@ -6,6 +6,7 @@
 
 from lib.object_detection import ObjectDetector
 from sys import argv
+from os import listdir
 from os.path import exists
 import json
 import config
@@ -28,7 +29,10 @@ import config
 
 '''
 
-object_detector = ObjectDetector(training_size=config.OD_TRAINING_SIZE)
+object_detector = ObjectDetector(
+    training_size=config.OD_TRAINING_SIZE,
+    validation_size=config.OD_VALIDATION_SIZE
+)
 
 def main():
 
@@ -100,14 +104,15 @@ def main():
     elif input_type == 4:
 
         # load labels
-        od_labels = load_labels(config.OD_TRAINING_LABELS_PATH)
+        object_detector.training_labels = load_labels(config.OD_TRAINING_LABELS_PATH)
+        object_detector.validation_labels = load_labels(config.OD_VALIDATION_LABELS_PATH)
 
         if config.TRAIN_OBSTACLES:
-            object_detector.train(od_labels)
+            object_detector.train()
 
 def load_labels(path):
 
-    ''' Load labels from file '''
+    ''' Load labels from json file '''
 
     labels = None
     with open(path) as file:

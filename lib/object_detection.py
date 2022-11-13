@@ -14,6 +14,7 @@ from PIL import ImageOps
 from detecto import core, utils, visualize
 from detecto.visualize import show_labeled_image, plot_prediction_grid
 import torch
+from time import sleep
 
 CLASS_MAP = {
     'pedestrian': 1,
@@ -106,22 +107,20 @@ class ObjectDetector():
         self.dataset = core.Dataset('data/labels/train', 'data/train')
 
         # train model on dataset
-        print(torch.cuda.is_available())
-        print(self.device)
-        self.model = core.Model(classes=self.classes, device=torch.device('cuda'))
-        self.model.fit(self.dataset, epochs=10, verbose=True)
+        self.model = core.Model(classes=self.classes, device=self.device)
+        self.model.fit(self.dataset, epochs=6, verbose=True)
 
         if self.__SAVE_MODEL:
-            self.model.save('models/faster_rcnn_2.pth')
+            self.model.save('models/faster_rcnn_5.pth')
 
 
     def predict(self, path):
 
-        model_path = 'models/faster_rcnn_2.pth'
+        model_path = 'models/faster_rcnn_5.pth'
         self.model = core.Model(classes=self.classes, device=self.device)
         self.model = core.Model.load(model_path, classes=list(CLASS_MAP.keys()))
 
-        image_path = 'data/test/cac07407-0eb1c8bf.jpg'
+        image_path = 'data/train/00a2f5b6-d4217a96.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
@@ -177,7 +176,7 @@ class ObjectDetector():
             root = Element('annotation')
             SubElement(root, 'folder').text = 'data/train'
             SubElement(root, 'filename').text = instance.file_name
-            SubElement(root, 'path').text = f'data/train/{instance.file_name}'
+            SubElement(root, 'path').text = f'/data/train/{instance.file_name}'
             source = SubElement(root, 'source')
             SubElement(source, 'database').text = 'BDD 100K'
             size = SubElement(root, 'size')

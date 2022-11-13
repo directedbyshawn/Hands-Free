@@ -43,7 +43,7 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-TRAINING_SIZE = 500
+TRAINING_SIZE = 300
 
 object_detector = ObjectDetector(training_size=TRAINING_SIZE)
 
@@ -52,14 +52,15 @@ def main():
     global object_detector
     
     # parse arguments
-    assert int(argv[1])
-    assert int(argv[1]) >= 1 and int(argv[1]) <= INPUT_TYPES
+    #assert int(argv[1])
+    #assert int(argv[1]) >= 1 and int(argv[1]) <= INPUT_TYPES
     input_type = int(argv[1])
     path = ''
 
     # validate input data
     if input_type == 1 or input_type == 3:
         path = argv[2]
+        '''
         assert isfile(path)
         assert len(argv) == 3
         assert exists(path)
@@ -81,11 +82,15 @@ def main():
         assert len(listdir('data/labels')) != 0
     else:
         raise InvalidInput
+
+    '''
     
     # perform action
     if input_type == 1:
 
         # SINGLE IMAGE
+
+        path="test.jpg"
 
         object_detector.predict(path)
 

@@ -7,11 +7,11 @@ class Instance():
         self.type = Type.TRAINING
         self.objects = []
 
-    def get_path(self):
+    def get_image_path(self):
         if self.type == Type.TRAINING:
-            return f'/data/images/training/{self.file_name}'
+            return f'data/images/training/{self.file_name}'
         elif self.type == Type.VALIDATION:
-            return f'/data/images/validation/{self.file_name}'        
+            return f'data/images/validation/{self.file_name}'        
 
     def repr(self):
         for _ in range(50):

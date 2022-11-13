@@ -12,7 +12,7 @@ import os
 from PIL import ImageOps
 from detecto import core, utils, visualize
 from detecto.visualize import show_labeled_image, plot_prediction_grid
-from shutil import rmtree
+from shutil import rmtree, copyfile, copy
 import torch
 import config
 from time import sleep
@@ -33,7 +33,8 @@ class ObjectDetector():
         self.originals = {}
         self.training_instances = []
         self.validation_instances = []
-        self.dataset = None
+        self.training_set = None
+        self.validation_set = None
 
     def load_data(self, type):
 
@@ -45,6 +46,8 @@ class ObjectDetector():
             # file name, original rgb, and grayscale matrix
             instance = Instance()
             instance.file_name = label['name']
+
+            instance.type = Type.TRAINING if type == Type.TRAINING else Type.VALIDATION
 
             # objects in image
             objects = []
@@ -99,13 +102,13 @@ class ObjectDetector():
         ])
         
         # create training dataset from labels and images
-        self.dataset = core.Dataset(
+        '''
+        self.training_set = core.Dataset(
             label_data='data/labels/training', 
             image_folder='data/images/training',
             transform=augmentations
         )
 
-        print(self.dataset[0])
 
         if config.OD_VALIDATE:
             validation_dataset = core.Dataset(
@@ -115,14 +118,18 @@ class ObjectDetector():
             )
         else:
             validation_dataset = None
-        
 
+        '''
+        self.training_set = core.Dataset('data/labels/training')
+        self.validation_set = core.Dataset('data/labels/validation')
+        
         # train model on dataset
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         losses = self.model.fit(
-            self.dataset, 
-            val_dataset=validation_dataset,
-            epochs=config.OD_HYPER['epochs'], 
+            self.training_set, 
+            val_dataset=self.validation_set,
+            epochs=config.OD_HYPER['epochs'],
+            learning_rate=config.OD_HYPER['learning_rate'],
             verbose=True
         )
 
@@ -138,7 +145,7 @@ class ObjectDetector():
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(config.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image_path = 'data/images/training/00a2f5b6-d4217a96.jpg'
+        image_path = 'data/images/testing/cc12dd7f-15268c57.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
@@ -172,7 +179,14 @@ class ObjectDetector():
         else:
             instances = self.validation_instances
 
+        count = 0
         for instance in instances:
+            if not os.path.exists(instance.get_image_path()):
+                print("training") if instance_type == Type.TRAINING else print("validation")
+                print(f'Image #{count}: {instance.get_image_path()} does not exist')
+                count += 1
+                continue
+            copy(instance.get_image_path(), labels)
 
             # reuse duplicate documents
             path = f'{labels}/{instance.file_name[:-4]}.xml'
@@ -183,7 +197,7 @@ class ObjectDetector():
             root = Element('annotation')
             SubElement(root, 'folder').text = images
             SubElement(root, 'filename').text = instance.file_name
-            SubElement(root, 'path').text = f'{images}/{instance.file_name}'
+            SubElement(root, 'path').text = f'{instance.file_name}'
             source = SubElement(root, 'source')
             SubElement(source, 'database').text = 'BDD 100K'
             size = SubElement(root, 'size')

@@ -17,8 +17,8 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-OD_TRAINING_SIZE = 300
-OD_VALIDATION_SIZE = 100
+OD_TRAINING_SIZE = 1000
+OD_VALIDATION_SIZE = 500
 
 OD_VALIDATE = True
 
@@ -39,9 +39,9 @@ OD_CLASS_MAP = {
 }
 
 OD_HYPER = {
-    'epochs': 5, 
+    'epochs': 5,
     'batch_size': 2,
-    'learning_rate': 0.001
+    'learning_rate': 0.0025
 }
 
-OD_MODEL_PATH = 'models/faster_rcnn_2.pth'
+OD_MODEL_PATH = 'models/faster_rcnn_10.pth'

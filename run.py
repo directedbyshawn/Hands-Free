@@ -6,11 +6,9 @@
 
 from lib.object_detection import ObjectDetector
 from sys import argv
-from os import listdir
-from os.path import exists, isfile, isdir
-from PIL import Image
+from os.path import exists
 import json
-import torch
+import config
 
 '''
 
@@ -30,22 +28,7 @@ import torch
 
 '''
 
-INPUT_TYPES = 4
-
-IMAGE_TYPES = ('.jpg', '.png', '.jpeg')
-VIDEO_TYPES = ('.mp4')
-
-TRAIN_OBSTACLES = True
-TRAIN_LANES = False
-TRAIN_SIGNS = False
-
-TEST_OBSTACLES = True
-TEST_LANES = False
-TEST_SIGNS = False
-
-TRAINING_SIZE = 300
-
-object_detector = ObjectDetector(training_size=TRAINING_SIZE)
+object_detector = ObjectDetector(training_size=config.OD_TRAINING_SIZE)
 
 def main():
 
@@ -116,18 +99,11 @@ def main():
 
     elif input_type == 4:
 
-        # TRAINING
-
         # load labels
-        label_path = 'data/labels/bdd100k_labels_images_train.json'
-        labels = load_labels(label_path)
-    
-        # load images from labels
-        images = load_training_images(labels)
+        od_labels = load_labels(config.OD_TRAINING_LABELS_PATH)
 
-        if TRAIN_OBSTACLES:
-            object_detector.load_training_data(images=images, labels=labels)
-            object_detector.train()
+        if config.TRAIN_OBSTACLES:
+            object_detector.train(od_labels)
 
 def load_labels(path):
 
@@ -137,23 +113,6 @@ def load_labels(path):
     with open(path) as file:
         labels = json.load(file)
     return labels
-
-def load_training_images(labels):
-
-    ''' Create dictionary mapping file names to images '''
-
-    images = {}
-    for index, label in enumerate(labels): 
-        file_name = label['name']
-        path = f'data/train/{file_name}'
-        if exists(path):
-            image = Image.open(path)
-            images[path] = image
-        else:
-            print(f'Cant find: {path}')
-        if index >= TRAINING_SIZE-1:
-            break
-    return images
 
 if __name__ == '__main__':
     main()

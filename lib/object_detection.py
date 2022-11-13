@@ -5,55 +5,31 @@
 
 '''
 
-from .instance_data import Instance, Object, Box
+from .instance_data import Instance, Object, Box, Type
 from xml.etree.ElementTree import Element, SubElement, ElementTree
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 from PIL import ImageOps
 from detecto import core, utils, visualize
 from detecto.visualize import show_labeled_image, plot_prediction_grid
+from shutil import rmtree
 import torch
-from time import sleep
-
-CLASS_MAP = {
-    'pedestrian': 1,
-    'rider': 2,
-    'car': 3,
-    'truck': 4,
-    'bus': 5,
-    'train': 6,
-    'motorcycle': 7,
-    'bicycle': 8,
-    'traffic light': 9,
-    'traffic sign': 10
-}
+import config
 
 class ObjectDetector():
 
     def __init__(self, training_size):
         self.__SAVE_MODEL = True
-        self.__LOAD_MODEL = True
         self.__TRAINING_SIZE = training_size
         self.__data_loaded = False
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.classes = list(CLASS_MAP.keys())
+        self.__CLASSES = list(config.OD_CLASS_MAP.keys())
         self.model = ''
         self.originals = {}
-        self.preprocessed = {}
-        self.labels = []
         self.training_instances = []
         self.dataset = None
 
-    def load_training_data(self, images, labels):
-
-        self.labels = labels
-
-        # keep original copy of images for final manipulation
-        self.originals = images
-
-        # preprocess images
-        self.preprocessed = self.preprocess(images)
+    def load_training_data(self, labels):
 
         # create instance class for each training instance
         for index, label in enumerate(labels):
@@ -61,15 +37,13 @@ class ObjectDetector():
             # file name, original rgb, and grayscale matrix
             instance = Instance()
             instance.file_name = label['name']
-            instance.original = images[f'data/train/{label["name"]}']
-            instance.preprocessed = self.preprocessed[f'data/train/{label["name"]}']
 
             # objects in image
             objects = []
             for object_raw in label['labels']:
                 
                 # exclude segmentation labels
-                if object_raw['category'] not in CLASS_MAP.keys():
+                if object_raw['category'] not in self.__CLASSES:
                     continue
 
                 # object class
@@ -93,34 +67,39 @@ class ObjectDetector():
             if index >= self.__TRAINING_SIZE-1:
                 break
 
+        # create xml files
+        self.generate_xml(Type.TRAINING)
+
         self.__data_loaded = True
 
-    def train(self):
+    def train(self, labels):
+
+        self.load_training_data(labels)
         
         if not self.__data_loaded:
             raise Exception
         
-        # generate xml files for each training instance
-        self.generate_xml()
-
         # create dataset from labels and images
-        self.dataset = core.Dataset('data/labels/train', 'data/train')
+        self.dataset = core.Dataset(
+            label_data='data/labels/training', 
+            image_folder='data/images/training'
+        )
 
         # train model on dataset
-        self.model = core.Model(classes=self.classes, device=self.device)
-        self.model.fit(self.dataset, epochs=6, verbose=True)
+        self.model = core.Model(classes=self.__CLASSES, device=self.device)
+        self.model.fit(self.dataset, epochs=config.OD_HYPER['epochs'], verbose=True)
 
         if self.__SAVE_MODEL:
-            self.model.save('models/faster_rcnn_5.pth')
+            existing = len(os.listdir('models'))
+            self.model.save(f'models/faster_rcnn_{existing}.pth')
 
 
     def predict(self, path):
 
-        model_path = 'models/faster_rcnn_5.pth'
-        self.model = core.Model(classes=self.classes, device=self.device)
-        self.model = core.Model.load(model_path, classes=list(CLASS_MAP.keys()))
+        self.model = core.Model(classes=self.__CLASSES, device=self.device)
+        self.model = core.Model.load(config.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image_path = 'data/train/00a2f5b6-d4217a96.jpg'
+        image_path = 'data/images/training/00a2f5b6-d4217a96.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
@@ -130,58 +109,42 @@ class ObjectDetector():
         print(scores)
         show_labeled_image(image, boxes, labels)
 
-    def preprocess(self, images):
-
-        '''
-    
-            Preprocess images by converting them to a matrix of 
-            grayscale values, and then converting the values to 
-            decimal between 0 and 1
-
-            Params:
-                images (dict) : dictionary mapping image filenames 
-                                to PIL images
-
-            Returns:
-                processed (dict) : dictionary mapping images filenames 
-                                   to grayscale matricies
+    def generate_xml(self, instance_type):
 
         '''
 
-        processed = {}
-        for file_name in images:
-            image = images[file_name]
-            grayscale_image = ImageOps.grayscale(image)
-            image_matrix = np.array(grayscale_image)
-            image_matrix = image_matrix / 255
-            processed[file_name] = image_matrix
-        return processed
-
-    def generate_xml(self):
+            Generate Pascal VOC XML files for each instance
 
         '''
+        labels = images = ''
+        if instance_type == Type.TRAINING:
+             labels = 'data/labels/training/'
+             images = 'data/images/training/'
+        else:
+            labels = 'data/labels/validation/'
+            images = 'data/images/validation/'
 
-            Generate xml files for each training instance
-
-        '''
+        # remove existing files
+        rmtree(labels, ignore_errors=True)
+        os.mkdir(labels)
 
         for instance in self.training_instances:
 
             # reuse duplicate documents
-            path = f'data/labels/train/{instance.file_name[:-4]}.xml'
+            path = f'{labels}{instance.file_name[:-4]}.xml'
             if os.path.exists(path):
                 continue
 
             # create document
             root = Element('annotation')
-            SubElement(root, 'folder').text = 'data/train'
+            SubElement(root, 'folder').text = images
             SubElement(root, 'filename').text = instance.file_name
-            SubElement(root, 'path').text = f'/data/train/{instance.file_name}'
+            SubElement(root, 'path').text = f'{images}{instance.file_name}'
             source = SubElement(root, 'source')
             SubElement(source, 'database').text = 'BDD 100K'
             size = SubElement(root, 'size')
-            SubElement(size, 'width').text = str(instance.original.width)
-            SubElement(size, 'height').text = str(instance.original.height)
+            SubElement(size, 'width').text = '1280'
+            SubElement(size, 'height').text = '720'
             SubElement(size, 'depth').text = '3'
             SubElement(root, 'segmented').text = '0'
             for object in instance.objects:
@@ -191,12 +154,12 @@ class ObjectDetector():
                 SubElement(object_xml, 'truncated').text = '0'
                 SubElement(object_xml, 'difficult').text = '0'
                 box = SubElement(object_xml, 'bndbox')
-                SubElement(box, 'xmin').text = str(object.box.x1)
-                SubElement(box, 'ymin').text = str(object.box.y1)
-                SubElement(box, 'xmax').text = str(object.box.x2)
-                SubElement(box, 'ymax').text = str(object.box.y2)
+                SubElement(box, 'xmin').text = str(int(object.box.x1))
+                SubElement(box, 'ymin').text = str(int(object.box.y1))
+                SubElement(box, 'xmax').text = str(int(object.box.x2))
+                SubElement(box, 'ymax').text = str(int(object.box.y2))
             tree = ElementTree(root)
-            tree.write(f'data/labels/train/{instance.file_name[:-4]}.xml')
+            tree.write(f'{labels}{instance.file_name[:-4]}.xml')
     
 
 

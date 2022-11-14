@@ -136,7 +136,7 @@ class ObjectDetector():
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(cfg.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image_path = 'data/images/testing/d1cabf1d-f2799edc.jpg'
+        image_path = 'data/images/testing/e7e5cbf4-564d781c.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
@@ -158,7 +158,6 @@ class ObjectDetector():
             draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill='red')
 
         image.show()
-
 
     def generate_xml(self, instance_type):
 

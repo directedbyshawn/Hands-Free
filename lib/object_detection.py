@@ -14,7 +14,7 @@ from detecto import core, utils, visualize
 from detecto.visualize import show_labeled_image, plot_prediction_grid
 from shutil import rmtree, copyfile, copy
 import torch
-import config
+import config as cfg
 from time import sleep
 from torchvision import transforms
 
@@ -26,7 +26,7 @@ class ObjectDetector():
         self.__VALIDATION_SIZE = validation_size
         self.__data_loaded = False
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.__CLASSES = list(config.OD_CLASS_MAP.keys())
+        self.__CLASSES = list(cfg.OD_CLASS_MAP.keys())
         self.training_labels = []
         self.validation_labels =[]
         self.model = ''
@@ -108,7 +108,7 @@ class ObjectDetector():
         )
 
 
-        if config.OD_VALIDATE:
+        if cfg.OD_VALIDATE:
             self.validation_set = core.Dataset(
                 label_data='data/labels/validation',
                 image_folder='data/images/validation'
@@ -121,8 +121,8 @@ class ObjectDetector():
         losses = self.model.fit(
             self.training_set, 
             val_dataset=self.validation_set,
-            epochs=config.OD_HYPER['epochs'],
-            learning_rate=config.OD_HYPER['learning_rate'],
+            epochs=cfg.OD_HYPER['epochs'],
+            learning_rate=cfg.OD_HYPER['learning_rate'],
             verbose=True
         )
 
@@ -134,7 +134,7 @@ class ObjectDetector():
     def predict(self, path):
 
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
-        self.model = core.Model.load(config.OD_MODEL_PATH, classes=self.__CLASSES)
+        self.model = core.Model.load(cfg.OD_MODEL_PATH, classes=self.__CLASSES)
 
         image_path = 'data/images/testing/cbe7477d-e5bf341e.jpg'
         image = utils.read_image(image_path)
@@ -201,6 +201,3 @@ class ObjectDetector():
                 SubElement(box, 'ymax').text = str(int(object.box.y2))
             tree = ElementTree(root)
             tree.write(f'{labels}/{instance.file_name[:-4]}.xml')
-    
-
-

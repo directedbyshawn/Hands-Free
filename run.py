@@ -9,7 +9,7 @@ from sys import argv
 from os import listdir
 from os.path import exists
 import json
-import config
+import config as cfg
 
 '''
 
@@ -30,8 +30,8 @@ import config
 '''
 
 object_detector = ObjectDetector(
-    training_size=config.OD_TRAINING_SIZE,
-    validation_size=config.OD_VALIDATION_SIZE
+    training_size=cfg.OD_TRAINING_SIZE,
+    validation_size=cfg.OD_VALIDATION_SIZE
 )
 
 def main():
@@ -104,10 +104,10 @@ def main():
     elif input_type == 4:
 
         # load labels
-        object_detector.training_labels = load_labels(config.OD_TRAINING_LABELS_PATH)
-        object_detector.validation_labels = load_labels(config.OD_VALIDATION_LABELS_PATH)
+        object_detector.training_labels = load_labels(cfg.OD_TRAINING_LABELS_PATH)
+        object_detector.validation_labels = load_labels(cfg.OD_VALIDATION_LABELS_PATH)
 
-        if config.TRAIN_OBSTACLES:
+        if cfg.TRAIN_OBSTACLES:
             object_detector.train()
 
 def load_labels(path):

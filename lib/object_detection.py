@@ -9,7 +9,7 @@ from .instance_data import Instance, Object, Box, Type
 from xml.etree.ElementTree import Element, SubElement, ElementTree
 import matplotlib.pyplot as plt
 import os
-from PIL import ImageOps
+from PIL import ImageOps, Image, ImageFont, ImageDraw, ImageEnhance
 from detecto import core, utils, visualize
 from detecto.visualize import show_labeled_image, plot_prediction_grid
 from shutil import rmtree, copyfile, copy
@@ -136,12 +136,29 @@ class ObjectDetector():
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(cfg.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image_path = 'data/images/testing/cbe7477d-e5bf341e.jpg'
+        image_path = 'data/images/testing/d1cabf1d-f2799edc.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
+        self.annotate_image(image_path, predictions)
+
+    def annotate_image(self, image_path, predictions):
+
         labels, boxes, scores = predictions
-        show_labeled_image(image, boxes, labels)
+
+        image = Image.open(image_path)
+        draw = ImageDraw.Draw(image)
+
+        for index, score in enumerate(scores):
+            if score < 0.7:
+                continue
+            box = [int(boxes[index][i]) for i in range(len(boxes[index]))]
+            label = labels[index]
+            draw.rectangle(box, outline='red')
+            draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill='red')
+
+        image.show()
+
 
     def generate_xml(self, instance_type):
 

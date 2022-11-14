@@ -17,8 +17,8 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-OD_TRAINING_SIZE = 1500
-OD_VALIDATION_SIZE = 500
+OD_TRAINING_SIZE = 30000
+OD_VALIDATION_SIZE = 3000
 
 OD_VALIDATE = True
 
@@ -44,4 +44,4 @@ OD_HYPER = {
     'learning_rate': 0.002
 }
 
-OD_MODEL_PATH = 'models/faster_rcnn_11.pth'
+OD_MODEL_PATH = 'models/faster_rcnn_12.pth'

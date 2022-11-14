@@ -141,9 +141,6 @@ class ObjectDetector():
         predictions = self.model.predict(image)
 
         labels, boxes, scores = predictions
-        print(labels)
-        print(boxes)
-        print(scores)
         show_labeled_image(image, boxes, labels)
 
     def generate_xml(self, instance_type):

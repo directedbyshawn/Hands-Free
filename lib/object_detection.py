@@ -102,26 +102,19 @@ class ObjectDetector():
         ])
         
         # create training dataset from labels and images
-        '''
         self.training_set = core.Dataset(
             label_data='data/labels/training', 
-            image_folder='data/images/training',
-            transform=augmentations
+            image_folder='data/images/training'
         )
 
 
         if config.OD_VALIDATE:
-            validation_dataset = core.Dataset(
+            self.validation_set = core.Dataset(
                 label_data='data/labels/validation',
-                image_folder='data/images/validation',
-                transform=augmentations
+                image_folder='data/images/validation'
             )
         else:
-            validation_dataset = None
-
-        '''
-        self.training_set = core.Dataset('data/labels/training')
-        self.validation_set = core.Dataset('data/labels/validation')
+            self.validation_set = None
         
         # train model on dataset
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
@@ -133,8 +126,6 @@ class ObjectDetector():
             verbose=True
         )
 
-        plt.plot(losses)
-
         if self.__SAVE_MODEL:
             existing = len(os.listdir('models'))
             self.model.save(f'models/faster_rcnn_{existing}.pth')
@@ -145,7 +136,7 @@ class ObjectDetector():
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(config.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image_path = 'data/images/testing/cc12dd7f-15268c57.jpg'
+        image_path = 'data/images/testing/cbe7477d-e5bf341e.jpg'
         image = utils.read_image(image_path)
         predictions = self.model.predict(image)
 
@@ -179,14 +170,9 @@ class ObjectDetector():
         else:
             instances = self.validation_instances
 
-        count = 0
         for instance in instances:
             if not os.path.exists(instance.get_image_path()):
-                print("training") if instance_type == Type.TRAINING else print("validation")
-                print(f'Image #{count}: {instance.get_image_path()} does not exist')
-                count += 1
                 continue
-            copy(instance.get_image_path(), labels)
 
             # reuse duplicate documents
             path = f'{labels}/{instance.file_name[:-4]}.xml'
@@ -197,7 +183,7 @@ class ObjectDetector():
             root = Element('annotation')
             SubElement(root, 'folder').text = images
             SubElement(root, 'filename').text = instance.file_name
-            SubElement(root, 'path').text = f'{instance.file_name}'
+            SubElement(root, 'path').text = f'{images}/{instance.file_name}'
             source = SubElement(root, 'source')
             SubElement(source, 'database').text = 'BDD 100K'
             size = SubElement(root, 'size')

@@ -4,12 +4,12 @@
 
 '''
 
-from models.object_detection import ObjectDetector
+from lib.object_detection import ObjectDetector
 from sys import argv
 from os import listdir
-from os.path import exists, isfile, isdir
-from PIL import Image
+from os.path import exists
 import json
+import config
 
 '''
 
@@ -29,38 +29,27 @@ import json
 
 '''
 
-INPUT_TYPES = 4
-
-IMAGE_TYPES = ('.jpg', '.png', '.jpeg')
-VIDEO_TYPES = ('.mp4')
-
-TRAIN_OBSTACLES = True
-TRAIN_LANES = False
-TRAIN_SIGNS = False
-
-TEST_OBSTACLES = True
-TEST_LANES = False
-TEST_SIGNS = False
-
-TRAINING_SIZE = 10
-
-object_detector = ObjectDetector(training_size=TRAINING_SIZE)
+object_detector = ObjectDetector(
+    training_size=config.OD_TRAINING_SIZE,
+    validation_size=config.OD_VALIDATION_SIZE
+)
 
 def main():
 
     global object_detector
     
     # parse arguments
-    assert int(argv[1])
-    assert int(argv[1]) >= 1 and int(argv[1]) <= INPUT_TYPES
+    #assert int(argv[1])
+    #assert int(argv[1]) >= 1 and int(argv[1]) <= INPUT_TYPES
     input_type = int(argv[1])
     path = ''
 
     # validate input data
     if input_type == 1 or input_type == 3:
+        path = argv[2]
+        '''
         assert isfile(path)
         assert len(argv) == 3
-        path = argv[2]
         assert exists(path)
         if (input_type == 1):
             assert path.lower().endswith(IMAGE_TYPES)
@@ -80,13 +69,21 @@ def main():
         assert len(listdir('data/labels')) != 0
     else:
         raise InvalidInput
+
+    '''
     
     # perform action
     if input_type == 1:
 
         # SINGLE IMAGE
 
+        path="test.jpg"
+
+        object_detector.predict(path)
+
         # open image and convert to grayscale
+
+        
         '''
         rgb_image = Image.open(path)
         grayscale_image = ImageOps.grayscale(rgb_image)
@@ -106,44 +103,21 @@ def main():
 
     elif input_type == 4:
 
-        # TRAINING
-
         # load labels
-        label_path = 'data/labels/bdd100k_labels_images_train.json'
-        labels = load_labels(label_path)
-    
-        # load images from labels
-        images = load_training_images(labels)
+        object_detector.training_labels = load_labels(config.OD_TRAINING_LABELS_PATH)
+        object_detector.validation_labels = load_labels(config.OD_VALIDATION_LABELS_PATH)
 
-        if TRAIN_OBSTACLES:
-            object_detector.load_training_data(images=images, labels=labels)
+        if config.TRAIN_OBSTACLES:
             object_detector.train()
 
 def load_labels(path):
 
-    ''' Load labels from file '''
+    ''' Load labels from json file '''
 
     labels = None
     with open(path) as file:
         labels = json.load(file)
     return labels
-
-def load_training_images(labels):
-
-    ''' Create dictionary mapping file names to images '''
-
-    images = {}
-    for index, label in enumerate(labels): 
-        file_name = label['name']
-        path = f'data/train/{file_name}'
-        if exists(path):
-            image = Image.open(path)
-            images[path] = image
-        else:
-            print(f'Cant find: {path}')
-        if index >= TRAINING_SIZE-1:
-            break
-    return images
 
 if __name__ == '__main__':
     main()

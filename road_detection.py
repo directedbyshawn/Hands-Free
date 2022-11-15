@@ -1,7 +1,7 @@
 '''
 	ML Group 8
 	The goal of this portion of the project is focused on detecting edges of the road.
-	This may be extended to lane detection, rather than just road edgeline detection.
+	This may be extended to lane detection, rather than just road edge line detection.
 	The ability to detect where the edges of the road are or where one's lane is, is an
 	important component of autonomous driving. It is the core of having a car drive on its
 	own.
@@ -52,8 +52,8 @@ def img_load(impath):
 
 '''
 	Transforms the image by selecting for white and yellow lane
-	lines. Then, the image is converted to grayscale and smoothed
-	with gaussian blur. The result is then returned
+	lines. Then, the image is converted to gray scale and smoothed
+	with Gaussian blur. The result is then returned
 '''
 def prep_img(img):
     # transformations of the image to make edge lines pop
@@ -77,7 +77,7 @@ def prep_img(img):
     mask = cv.bitwise_or(white_mask, yellow_mask)
     transformed_img = cv.bitwise_and(transformed_img, transformed_img, mask=mask)
     
-    # now increase constrast by converting to grayscale and smoothing edges
+    # now increase contrast by converting to gray scale and smoothing edges
     cv.cvtColor(transformed_img, cv.COLOR_RGB2GRAY)
     cv.GaussianBlur(transformed_img, (17, 17), 0) # kernel may be changed, 17 gives a good smoothing
     
@@ -94,7 +94,7 @@ def edge_detect(img):
 
 '''
 	Select the region of where to look for edges given a set of
-	vertecies. Returns an image with all other noise or detected edges
+	vertices. Returns an image with all other noise or detected edges
 	outside of that region removed.
 '''
 def select_lane_region(img, vertices):
@@ -116,18 +116,68 @@ def select_lane_region(img, vertices):
 	single output line.
 '''
 def find_draw_edges(edge_img, img):
-	
-	# detect the straight lines 
-    lines = cv.HoughLinesP(edge_img, rho=1, theta=np.pi/180, threshold=20, minLineLength=20, maxLineGap = 300)
-    
+    # arrays needed to weight and average line slopes
+    left_lines = []
+    left_weights = []
+    right_lines = []
+    right_weights = []
+
     # copy the image and draw lines on it
     out_img = img
     
+    # detect the straight lines and build lists to average
+    lines = cv.HoughLinesP(edge_img, rho=1, theta=np.pi/180, threshold=20, minLineLength=20, maxLineGap = 300)
+    
     for line in lines:
         for x1,y1,x2,y2 in line:
-            cv.line(out_img, (x1, y1), (x2, y2), [255, 0, 0], 2)
+            if (x2 == x1) or (y2 == y1):    # vertical/horizontal line
+                continue
+            slope = (y2 - y1) / (x2 - x1)
+            intercept = y1 - (slope * x1)
+            length = np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
+            if (abs(slope) < .4): # catch bad slopes/misread edges
+                continue
+            if slope < 0:   # left hand line
+                left_lines.append((slope, intercept))
+                left_weights.append((length))
+            else:           # right hand line
+                right_lines.append((slope, intercept))
+                right_weights.append((length))
+    
+    # get the y coords for the lines
+    y1 = img.shape[0]
+    y2 = y1 * 0.6
+    
+    # make longer lines count more
+    left_lane = np.dot(left_weights, left_lines) / np.sum(left_weights) if len(left_weights) > 0 else None
+    right_lane = np.dot(right_weights, right_lines) / np.sum(right_weights) if len(right_weights) > 0 else None 
+        
+    # get the points for the lines
+    def get_line_points(y1, y2, line):
+        if line is None:
+            return None
+        
+        slope, intercept = line
+        x1 = int((y1 - intercept) / slope)
+        x2 = int((y2 - intercept) / slope)
+        y1 = int(y1)
+        y2 = int(y2)
+        
+        return ((x1, y1), (x2, y2))
+    
+    # get the point representation of the lines
+    left_lane = get_line_points(y1, y2, left_lane)
+    right_lane = get_line_points(y1, y2, right_lane)
+    
+    lines = (left_lane, right_lane)
+    
+    # actually draw the lines on the image
+    line_img = np.zeros_like(img)
+    for line in lines:
+        if line is not None:
+            cv.line(line_img, *line, [169, 69, 255], 20)
             
-    return out_img
+    return cv.addWeighted(img, 1.0, line_img, .95, 0.0)
     
 '''
 	Main function to drive the program. Makes all of the needed function calls
@@ -141,10 +191,9 @@ def main():
 	
 	# transform the image
     transformed_imgs = [prep_img(img) for img in imgs]
-	
+    
 	# detect the edges
     edges = [edge_detect(img) for img in transformed_imgs]
-    
     
     # select a good region
     cropped_lanes = []

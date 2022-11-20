@@ -92,14 +92,6 @@ class ObjectDetector():
         
         if not self.__data_loaded:
             raise Exception
-
-        augmentations = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.RandomHorizontalFlip(0.5),
-            transforms.ColorJitter(saturation=0.5),
-            transforms.ToTensor(),
-            utils.normalize_transform(),
-        ])
         
         # create training dataset from labels and images
         self.training_set = core.Dataset(
@@ -139,7 +131,9 @@ class ObjectDetector():
         image = utils.read_image(path)
         predictions = self.model.predict(image)
 
-        return self.annotate_image(path, predictions)
+        annotated_image = self.annotate_image(path, predictions)
+
+        return annotated_image, predictions
 
     def annotate_image(self, image_path, predictions):
 

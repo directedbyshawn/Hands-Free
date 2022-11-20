@@ -8,8 +8,10 @@ from lib.object_detection import ObjectDetector
 from sys import argv
 from os import listdir, mkdir
 from os.path import exists, isfile, isdir
+import numpy as np
 import json
 import config as cfg
+import cv2
 
 '''
 
@@ -97,6 +99,54 @@ def make_output_dir():
     output_dir = f'output/{index}'
     mkdir(output_dir)
     return output_dir, index
+    
+def export_signs(original_path, predictions, output_dir):
+
+    ''' Export signs to output directory '''
+
+    signs = []
+    original = cv2.imread(original_path)
+    labels, boxes, scores = predictions
+    for index, label in enumerate(labels):
+        if label == 'traffic sign' and scores[index] > cfg.OD_PREDICTION_THRESHOLD:
+            box = boxes[index]
+            box = [int(val) for val in box]
+            xmin, ymin, xmax, ymax = box
+            sign = original[ymin:ymax, xmin:xmax]
+            bordered_sign = add_border(sign)
+            downscaled_image = cv2.resize(bordered_sign, (cfg.SIGN_SIZE, cfg.SIGN_SIZE))
+            signs.append(downscaled_image)
+
+    return signs
+
+def add_border(sign):
+
+    height, width, _ = sign.shape
+
+    amount = np.abs(height - width) // 2
+    border1 = border2 = 0
+    if np.abs(height - width) % 2 == 0:
+        border1 = border2 = amount
+    else:
+        border1 = amount
+        border2 = amount + 1
+
+    if height > width: 
+        border = [0, 0, border1, border2]
+    else:
+        border = [border1, border2, 0, 0]
+
+    bordered_sign = cv2.copyMakeBorder(
+        sign, 
+        border[0], 
+        border[1], 
+        border[2], 
+        border[3], 
+        cv2.BORDER_CONSTANT,
+        value=[0, 0, 0]
+    )
+
+    return bordered_sign
 
 def single_image(path):
 
@@ -104,17 +154,47 @@ def single_image(path):
     # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
 
-    # run image through object detection model
-    image = object_detector.predict(path)
+    # temporary directory for signs
+    mkdir(f'{output_dir}/signs')
 
+    # run image through object detection model.
+    # predictions is a 3 tuple consisting of a list of labels, a
+    # list of bounding box coordinates, and a list of confidence
+    image, predictions = object_detector.predict(path)
+
+    # export signs from image, write them to their own directory
+    signs = export_signs(path, predictions, output_dir)
+    for i, sign in enumerate(signs):
+        cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
+
+    # save final image
     image.save(f'{output_dir}/image.jpg')
 
 def directory_images(path):
     
+    # output dir is the path to the directory, index
+    # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
 
+    # create temporary directory for signs
+    mkdir(f'{output_dir}/signs')
+
+    # run each image in directory through model, export signs from 
+    # each image and save them to the signs directory
     for index, file_name in enumerate(listdir(path)):
-        image = object_detector.predict(f'{path}/{file_name}')
+
+        # original image
+        original_path = f'{path}/{file_name}'
+
+        # run image through object detection model
+        image, predictions = object_detector.predict(f'{path}/{file_name}')
+
+        # export signs from image, write them to their own directory
+        signs = export_signs(original_path, predictions, output_dir)
+        for i, sign in enumerate(signs):
+            cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
+
+        # save final image
         image.save(f'{output_dir}/image{index}.jpg')
 
 def video(path):
@@ -122,11 +202,9 @@ def video(path):
 
 def train():
 
-    # load labels
-    object_detector.training_labels = load_labels(cfg.OD_TRAINING_LABELS_PATH)
-    object_detector.validation_labels = load_labels(cfg.OD_VALIDATION_LABELS_PATH)
-
     if cfg.TRAIN_OBSTACLES:
+        object_detector.training_labels = load_labels(cfg.OD_TRAINING_LABELS_PATH)
+        object_detector.validation_labels = load_labels(cfg.OD_VALIDATION_LABELS_PATH)
         object_detector.train()
 
 def load_labels(path):

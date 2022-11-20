@@ -44,6 +44,8 @@ OD_HYPER = {
     'learning_rate': 0.002
 }
 
+SIGN_SIZE = 32
+
 OD_PREDICTION_THRESHOLD = 0.7
 
 OD_MODEL_PATH = 'models/faster_rcnn_5000_instances_12_epochs.pth'

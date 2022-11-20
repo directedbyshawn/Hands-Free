@@ -6,7 +6,7 @@
 
 INPUT_TYPES = 4
 
-IMAGE_TYPES = ('.jpg', '.png', '.jpeg')
+IMAGE_TYPES = ('.jpg')
 VIDEO_TYPES = ('.mp4')
 
 TRAIN_OBSTACLES = True
@@ -43,5 +43,7 @@ OD_HYPER = {
     'batch_size': 2,
     'learning_rate': 0.002
 }
+
+OD_PREDICTION_THRESHOLD = 0.7
 
 OD_MODEL_PATH = 'models/faster_rcnn_5000_instances_12_epochs.pth'

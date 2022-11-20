@@ -136,11 +136,10 @@ class ObjectDetector():
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(cfg.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image_path = 'data/images/testing/e7e5cbf4-564d781c.jpg'
-        image = utils.read_image(image_path)
+        image = utils.read_image(path)
         predictions = self.model.predict(image)
 
-        self.annotate_image(image_path, predictions)
+        return self.annotate_image(path, predictions)
 
     def annotate_image(self, image_path, predictions):
 
@@ -150,14 +149,14 @@ class ObjectDetector():
         draw = ImageDraw.Draw(image)
 
         for index, score in enumerate(scores):
-            if score < 0.7:
+            if score < cfg.OD_PREDICTION_THRESHOLD:
                 continue
             box = [int(boxes[index][i]) for i in range(len(boxes[index]))]
             label = labels[index]
             draw.rectangle(box, outline='red')
             draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill='red')
 
-        image.show()
+        return image
 
     def generate_xml(self, instance_type):
 

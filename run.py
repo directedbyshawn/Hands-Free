@@ -8,6 +8,7 @@ from lib.object_detection import ObjectDetector
 from sys import argv
 from os import listdir, mkdir
 from os.path import exists, isfile, isdir
+from PIL import Image
 import numpy as np
 import json
 import config as cfg
@@ -123,6 +124,7 @@ def add_border(sign):
 
     height, width, _ = sign.shape
 
+    # border values, ensure aspect ration is 1:1
     amount = np.abs(height - width) // 2
     border1 = border2 = 0
     if np.abs(height - width) % 2 == 0:
@@ -131,6 +133,7 @@ def add_border(sign):
         border1 = amount
         border2 = amount + 1
 
+    # add to top and bottom or left and right
     if height > width: 
         border = [0, 0, border1, border2]
     else:
@@ -154,9 +157,6 @@ def single_image(path):
     # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
 
-    # temporary directory for signs
-    mkdir(f'{output_dir}/signs')
-
     # run image through object detection model.
     # predictions is a 3 tuple consisting of a list of labels, a
     # list of bounding box coordinates, and a list of confidence
@@ -164,8 +164,10 @@ def single_image(path):
 
     # export signs from image, write them to their own directory
     signs = export_signs(path, predictions, output_dir)
-    for i, sign in enumerate(signs):
-        cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
+    if cfg.SAVE_SIGNS:
+        mkdir(f'{output_dir}/signs')
+        for i, sign in enumerate(signs):
+            cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
 
     # save final image
     image.save(f'{output_dir}/image.jpg')
@@ -175,9 +177,6 @@ def directory_images(path):
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
-
-    # create temporary directory for signs
-    mkdir(f'{output_dir}/signs')
 
     # run each image in directory through model, export signs from 
     # each image and save them to the signs directory
@@ -191,14 +190,45 @@ def directory_images(path):
 
         # export signs from image, write them to their own directory
         signs = export_signs(original_path, predictions, output_dir)
-        for i, sign in enumerate(signs):
-            cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
+        if cfg.SAVE_SIGNS:
+            mkdir(f'{output_dir}/signs')
+            for i, sign in enumerate(signs):
+                cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
 
         # save final image
         image.save(f'{output_dir}/image{index}.jpg')
 
 def video(path):
-    pass
+    
+    original = cv2.VideoCapture(path)
+
+    output_dir, index = make_output_dir()
+
+    out = cv2.VideoWriter(f'{output_dir}/video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 25, (1280, 720))
+
+    frames = []
+    cont = True
+    while cont:
+        ret, frame = original.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frames.append(frame)
+        else:
+            cont = False
+    
+    frames_dir = f'{output_dir}/frames'
+    mkdir(f'{output_dir}/frames')
+    for index, frame in enumerate(frames):
+        cv2.imwrite(f'{output_dir}/frames/frame{index}.jpg', frame)
+
+    for index, file_name in enumerate(listdir(frames_dir)):
+        image, predictions = object_detector.predict(f'{frames_dir}/{file_name}')
+        image_array = np.asarray(image)
+        cv_image = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        out.write(cv_image)
+
+    out.releaseAndSave()
+
 
 def train():
 

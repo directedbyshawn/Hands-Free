@@ -211,7 +211,7 @@ def video(path):
     while cont:
         ret, frame = original.read()
         if ret:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            #frame = cv2.cvtColor(frame, cv2.COLOR_RGB)
             frames.append(frame)
         else:
             cont = False
@@ -221,13 +221,19 @@ def video(path):
     for index, frame in enumerate(frames):
         cv2.imwrite(f'{output_dir}/frames/frame{index}.jpg', frame)
 
+    mkdir(f'{output_dir}/final_frames')
     for index, file_name in enumerate(listdir(frames_dir)):
         image, predictions = object_detector.predict(f'{frames_dir}/{file_name}')
         image_array = np.asarray(image)
-        cv_image = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        cv_image = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(f'{output_dir}/final_frames/frame{index}.jpg', cv_image)
         out.write(cv_image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    out.releaseAndSave()
+    out.release()
+    original.release()
+    cv2.destroyAllWindows()
 
 
 def train():

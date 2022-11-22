@@ -123,7 +123,7 @@ class ObjectDetector():
             self.model.save(f'models/faster_rcnn_{existing}.pth')
 
 
-    def predict(self, path):
+    def predict(self, path, image):
 
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(cfg.OD_MODEL_PATH, classes=self.__CLASSES)

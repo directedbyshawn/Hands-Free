@@ -13,6 +13,7 @@ import numpy as np
 import json
 import config as cfg
 import cv2
+from sys import stdout 
 
 '''
 
@@ -204,30 +205,29 @@ def video(path):
 
     output_dir, index = make_output_dir()
 
+    # output video buffer
     out = cv2.VideoWriter(f'{output_dir}/video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 25, (1280, 720))
 
+    # save each frame from video to array
     frames = []
     cont = True
     while cont:
         ret, frame = original.read()
         if ret:
-            #frame = cv2.cvtColor(frame, cv2.COLOR_RGB)
             frames.append(frame)
         else:
             cont = False
-    
-    frames_dir = f'{output_dir}/frames'
-    mkdir(f'{output_dir}/frames')
-    for index, frame in enumerate(frames):
-        cv2.imwrite(f'{output_dir}/frames/frame{index}.jpg', frame)
 
-    mkdir(f'{output_dir}/final_frames')
-    for index, file_name in enumerate(listdir(frames_dir)):
-        image, predictions = object_detector.predict(f'{frames_dir}/{file_name}')
+    # run each frame through model, write frame with object detection to buffer
+    for index, frame in enumerate(frames):
+    
+        predictions = object_detector.predict(frame)
+        image = object_detector.annotate_image(frame, predictions)
+
+        # convert to cv & write to buffer
         image_array = np.asarray(image)
-        cv_image = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f'{output_dir}/final_frames/frame{index}.jpg', cv_image)
-        out.write(cv_image)
+        out.write(image_array)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

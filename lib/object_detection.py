@@ -123,23 +123,18 @@ class ObjectDetector():
             self.model.save(f'models/faster_rcnn_{existing}.pth')
 
 
-    def predict(self, path, image):
+    def predict(self, image):
 
         self.model = core.Model(classes=self.__CLASSES, device=self.device)
         self.model = core.Model.load(cfg.OD_MODEL_PATH, classes=self.__CLASSES)
 
-        image = utils.read_image(path)
-        predictions = self.model.predict(image)
+        return self.model.predict(image)
 
-        annotated_image = self.annotate_image(path, predictions)
-
-        return annotated_image, predictions
-
-    def annotate_image(self, image_path, predictions):
+    def annotate_image(self, cv_image, predictions):
 
         labels, boxes, scores = predictions
 
-        image = Image.open(image_path)
+        image = Image.fromarray(cv_image)
         draw = ImageDraw.Draw(image)
 
         for index, score in enumerate(scores):
@@ -147,8 +142,8 @@ class ObjectDetector():
                 continue
             box = [int(boxes[index][i]) for i in range(len(boxes[index]))]
             label = labels[index]
-            draw.rectangle(box, outline='red')
-            draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill='red')
+            draw.rectangle(box, outline='blue')
+            draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill='blue')
 
         return image
 

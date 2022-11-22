@@ -7,7 +7,7 @@
 INPUT_TYPES = 4
 
 IMAGE_TYPES = ('.jpg')
-VIDEO_TYPES = ('.mp4')
+VIDEO_TYPES = ('.mp4', '.mov')
 
 TRAIN_OBSTACLES = True
 TRAIN_LANES = False

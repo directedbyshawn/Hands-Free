@@ -130,7 +130,7 @@ class ObjectDetector():
 
         return self.model.predict(image)
 
-    def annotate_image(self, cv_image, predictions):
+    def annotate_image(self, cv_image, predictions, color):
 
         labels, boxes, scores = predictions
 
@@ -142,8 +142,8 @@ class ObjectDetector():
                 continue
             box = [int(boxes[index][i]) for i in range(len(boxes[index]))]
             label = labels[index]
-            draw.rectangle(box, outline='blue')
-            draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill='blue')
+            draw.rectangle(box, outline=color)
+            draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill=color)
 
         return image
 

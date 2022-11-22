@@ -13,7 +13,7 @@ import numpy as np
 import json
 import config as cfg
 import cv2
-from sys import stdout 
+import progressbar
 
 '''
 
@@ -161,7 +161,8 @@ def single_image(path):
     # run image through object detection model.
     # predictions is a 3 tuple consisting of a list of labels, a
     # list of bounding box coordinates, and a list of confidence
-    image, predictions = object_detector.predict(path)
+    image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
+    predictions = object_detector.predict(image)
 
     # export signs from image, write them to their own directory
     signs = export_signs(path, predictions, output_dir)
@@ -169,6 +170,8 @@ def single_image(path):
         mkdir(f'{output_dir}/signs')
         for i, sign in enumerate(signs):
             cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
+
+    image = object_detector.annotate_image(image, predictions, color='red')
 
     # save final image
     image.save(f'{output_dir}/image.jpg')
@@ -179,15 +182,23 @@ def directory_images(path):
     # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
 
+    # progress bar
+    bar = progressbar.ProgressBar(maxval=100, \
+        widgets=[progressbar.Bar('=', 'progress: [', ']'), '', progressbar.Percentage()])
+    increment = 100 / len(listdir(path))
+    progress = 0
+    bar.start()
+
     # run each image in directory through model, export signs from 
     # each image and save them to the signs directory
     for index, file_name in enumerate(listdir(path)):
 
         # original image
         original_path = f'{path}/{file_name}'
+        original = cv2.cvtColor(cv2.imread(original_path), cv2.COLOR_BGR2RGB)
 
         # run image through object detection model
-        image, predictions = object_detector.predict(f'{path}/{file_name}')
+        predictions = object_detector.predict(original)
 
         # export signs from image, write them to their own directory
         signs = export_signs(original_path, predictions, output_dir)
@@ -197,7 +208,15 @@ def directory_images(path):
                 cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
 
         # save final image
+        image = object_detector.annotate_image(original, predictions, color='red')
         image.save(f'{output_dir}/image{index}.jpg')
+
+        progress += increment
+        if progress > 100:
+            progress = 100
+        bar.update(progress)
+
+    bar.finish()
 
 def video(path):
     
@@ -217,12 +236,19 @@ def video(path):
             frames.append(frame)
         else:
             cont = False
+    
+    # progress bar
+    bar = progressbar.ProgressBar(maxval=100, \
+        widgets=[progressbar.Bar('=', 'progress: [', ']'), '', progressbar.Percentage()])
+    increment = 100 / len(frames)
+    progress = 0
+    bar.start()
 
     # run each frame through model, write frame with object detection to buffer
     for index, frame in enumerate(frames):
     
         predictions = object_detector.predict(frame)
-        image = object_detector.annotate_image(frame, predictions)
+        image = object_detector.annotate_image(frame, predictions, color='blue')
 
         # convert to cv & write to buffer
         image_array = np.asarray(image)
@@ -230,11 +256,15 @@ def video(path):
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        
+        progress += increment
+        bar.update(progress)
+
+    bar.finish()
 
     out.release()
     original.release()
     cv2.destroyAllWindows()
-
 
 def train():
 

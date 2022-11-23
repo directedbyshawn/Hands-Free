@@ -11,22 +11,7 @@ class Instance():
         if self.type == Type.TRAINING:
             return f'data/images/training/{self.file_name}'
         elif self.type == Type.VALIDATION:
-            return f'data/images/validation/{self.file_name}'        
-
-    def repr(self):
-        for _ in range(50):
-            print('-', end='')
-        print()
-
-        print(f'File name: {self.file_name}')
-        self.original.show()
-        print(self.preprocessed)
-        print("Objects in image: ")
-        for object in self.objects:
-            print(f'\n{object.class_name} with box:')
-            print(f'x1: {object.box.x1}, y1: {object.box.y1}')
-            print(f'x2: {object.box.x2}, y2: {object.box.y2}')
-        print()
+            return f'data/images/validation/{self.file_name}'
 
 class Object():
 

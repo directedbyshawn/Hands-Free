@@ -6,8 +6,8 @@
 
 INPUT_TYPES = 4
 
-IMAGE_TYPES = ('.jpg', '.png', '.jpeg')
-VIDEO_TYPES = ('.mp4')
+IMAGE_TYPES = ('.jpg')
+VIDEO_TYPES = ('.mp4', '.mov')
 
 TRAIN_OBSTACLES = True
 TRAIN_LANES = False
@@ -17,8 +17,8 @@ TEST_OBSTACLES = True
 TEST_LANES = False
 TEST_SIGNS = False
 
-OD_TRAINING_SIZE = 1500
-OD_VALIDATION_SIZE = 500
+OD_TRAINING_SIZE = 30000
+OD_VALIDATION_SIZE = 3000
 
 OD_VALIDATE = True
 
@@ -44,4 +44,9 @@ OD_HYPER = {
     'learning_rate': 0.002
 }
 
-OD_MODEL_PATH = 'models/faster_rcnn_11.pth'
+SIGN_SIZE = 32
+SAVE_SIGNS = False
+
+OD_PREDICTION_THRESHOLD = 0.7
+
+OD_MODEL_PATH = 'models/faster_rcnn_5000_instances_12_epochs.pth'

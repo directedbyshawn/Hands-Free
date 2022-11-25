@@ -31,7 +31,7 @@ def show_images(images, cmap=None):
     for i, image in enumerate(images):
         plt.subplot(rows, cols, i+1)
         # use gray scale color map if there is only one channel
-        cmap = 'gray' if len(image.shape)==2 else cmap
+        cmap = 'gray' if len(image.shape) == 2 else cmap
         plt.imshow(image, cmap=cmap)
         plt.xticks([])
         plt.yticks([])
@@ -40,16 +40,6 @@ def show_images(images, cmap=None):
     plt.tight_layout(pad=0, h_pad=0, w_pad=0)
     plt.show()
     
-
-'''
-	Loads in the passed in image to be used in the program
-'''
-def img_load(impath):
-    # load in the image
-    img = plt.imread(impath)
-    return img
-	
-
 '''
 	Transforms the image by selecting for white and yellow lane
 	lines. Then, the image is converted to gray scale and smoothed
@@ -90,7 +80,7 @@ def prep_img(img):
 '''
 def edge_detect(img):
     # edge line detection
-    return cv.Canny(img, 50, 150) # TODO: Change the lower and upper threshold values as needed
+    return cv.Canny(img, 50, 150)
 
 '''
 	Select the region of where to look for edges given a set of
@@ -146,7 +136,7 @@ def find_draw_edges(edge_img, img):
     
     # get the y coords for the lines
     y1 = img.shape[0]
-    y2 = y1 * 0.6
+    y2 = y1 * 0.65
     
     # make longer lines count more
     left_lane = np.dot(left_weights, left_lines) / np.sum(left_weights) if len(left_weights) > 0 else None
@@ -156,7 +146,6 @@ def find_draw_edges(edge_img, img):
     def get_line_points(y1, y2, line):
         if line is None:
             return None
-        
         slope, intercept = line
         x1 = int((y1 - intercept) / slope)
         x2 = int((y2 - intercept) / slope)
@@ -183,11 +172,11 @@ def find_draw_edges(edge_img, img):
 	Main function to drive the program. Makes all of the needed function calls
 	and sets up the needed params to run the program
 '''
-def main():
+def detect_lanes(file_names):
     # load images
     imgs = []
-    for filename in FILENAMES:
-        imgs.append(img_load(filename))
+    for filename in file_names:
+        imgs.append(plt.imread(filename))
 	
 	# transform the image
     transformed_imgs = [prep_img(img) for img in imgs]
@@ -212,4 +201,4 @@ def main():
 	# show the image
     show_images(outputs)
     
-main()
+detect_lanes(FILENAMES)

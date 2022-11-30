@@ -45,8 +45,8 @@ OD_HYPER = {
 }
 
 SIGN_SIZE = 32
-SAVE_SIGNS = False
+SAVE_SIGNS = True
 
-OD_PREDICTION_THRESHOLD = 0.7
+OD_PREDICTION_THRESHOLD = 0.85
 
 OD_MODEL_PATH = 'models/faster_rcnn_5000_instances_12_epochs.pth'

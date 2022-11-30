@@ -6,9 +6,8 @@
 
 from lib.object_detection import ObjectDetector
 from sys import argv
-from os import listdir, mkdir
+from os import listdir, mkdir, system, name
 from os.path import exists, isfile, isdir
-from PIL import Image
 import numpy as np
 import json
 import config as cfg
@@ -154,6 +153,9 @@ def add_border(sign):
 
 def single_image(path):
 
+    system('cls') if name == 'nt' else system('clear')
+    print(f'\n\nSingle image: {path}\n\n')
+
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
@@ -177,6 +179,9 @@ def single_image(path):
     image.save(f'{output_dir}/image.jpg')
 
 def directory_images(path):
+
+    system('cls') if name == 'nt' else system('clear')
+    print(f'\n\nDirectory: {path}\n\n')
     
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
@@ -203,7 +208,7 @@ def directory_images(path):
         # export signs from image, write them to their own directory
         signs = export_signs(original_path, predictions, output_dir)
         if cfg.SAVE_SIGNS:
-            mkdir(f'{output_dir}/signs')
+            mkdir(f'{output_dir}/signs') if not exists(f'{output_dir}/signs') else None
             for i, sign in enumerate(signs):
                 cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
 
@@ -219,6 +224,9 @@ def directory_images(path):
     bar.finish()
 
 def video(path):
+
+    system('cls') if name == 'nt' else system('clear')
+    print(f'\n\nVideo: {path}\n\n')
     
     original = cv2.VideoCapture(path)
 

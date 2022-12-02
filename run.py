@@ -204,8 +204,6 @@ def directory_images(path):
         # run image through object detection model
         predictions = object_detector.predict(original)
         
-        # find the lane lines
-        predictions = detect_lane([original])
         
         # export signs from image, write them to their own directory
         signs = export_signs(original_path, predictions, output_dir)
@@ -216,6 +214,7 @@ def directory_images(path):
 
         # save final image
         image = object_detector.annotate_image(original, predictions, color='red')
+        image = detect_lanes([image])
         image.save(f'{output_dir}/image{index}.jpg')
 
         progress += increment

@@ -6,13 +6,15 @@
 
 from lib.object_detection import ObjectDetector
 from sys import argv
-from os import listdir, mkdir, system, name
+from os import listdir, mkdir
 from os.path import exists, isfile, isdir
+from PIL import Image
 import numpy as np
 import json
 import config as cfg
 import cv2
 import progressbar
+from road_detection import detect_lanes
 
 '''
 
@@ -153,9 +155,6 @@ def add_border(sign):
 
 def single_image(path):
 
-    system('cls') if name == 'nt' else system('clear')
-    print(f'\n\nSingle image: {path}\n\n')
-
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
     output_dir, index = make_output_dir()
@@ -166,6 +165,9 @@ def single_image(path):
     image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
     predictions = object_detector.predict(image)
 
+    # detect and draw lane lines on the image
+    image = detect_lanes([image])
+    
     # export signs from image, write them to their own directory
     signs = export_signs(path, predictions, output_dir)
     if cfg.SAVE_SIGNS:
@@ -179,9 +181,6 @@ def single_image(path):
     image.save(f'{output_dir}/image.jpg')
 
 def directory_images(path):
-
-    system('cls') if name == 'nt' else system('clear')
-    print(f'\n\nDirectory: {path}\n\n')
     
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
@@ -204,11 +203,14 @@ def directory_images(path):
 
         # run image through object detection model
         predictions = object_detector.predict(original)
-
+        
+        # find the lane lines
+        predictions = detect_lane([original])
+        
         # export signs from image, write them to their own directory
         signs = export_signs(original_path, predictions, output_dir)
         if cfg.SAVE_SIGNS:
-            mkdir(f'{output_dir}/signs') if not exists(f'{output_dir}/signs') else None
+            mkdir(f'{output_dir}/signs')
             for i, sign in enumerate(signs):
                 cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
 
@@ -224,9 +226,6 @@ def directory_images(path):
     bar.finish()
 
 def video(path):
-
-    system('cls') if name == 'nt' else system('clear')
-    print(f'\n\nVideo: {path}\n\n')
     
     original = cv2.VideoCapture(path)
 
@@ -257,6 +256,9 @@ def video(path):
     
         predictions = object_detector.predict(frame)
         image = object_detector.annotate_image(frame, predictions, color='blue')
+        
+        # detect lanes
+        image = detect_lanes([image])
 
         # convert to cv & write to buffer
         image_array = np.asarray(image)

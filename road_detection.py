@@ -191,4 +191,7 @@ def detect_lanes(imgs):
     
     # find and draw the lines
     outputs = [find_draw_edges(cropped, img) for cropped, img in zip(cropped_lanes, imgs)]
+    
+    # return the image
+    return outputs[0]
            

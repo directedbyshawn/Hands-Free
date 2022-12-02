@@ -115,22 +115,24 @@ def find_draw_edges(edge_img, img):
     
     # detect the straight lines and build lists to average
     lines = cv.HoughLinesP(edge_img, rho=1, theta=np.pi/180, threshold=20, minLineLength=20, maxLineGap = 300)
-    
-    for line in lines:
-        for x1,y1,x2,y2 in line:
-            if (x2 == x1) or (y2 == y1):    # vertical/horizontal line
-                continue
-            slope = (y2 - y1) / (x2 - x1)
-            intercept = y1 - (slope * x1)
-            length = np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
-            if (abs(slope) < .4): # catch bad slopes/misread edges
-                continue
-            if slope < 0:   # left hand line
-                left_lines.append((slope, intercept))
-                left_weights.append((length))
-            else:           # right hand line
-                right_lines.append((slope, intercept))
-                right_weights.append((length))
+    try:
+        for line in lines:
+            for x1,y1,x2,y2 in line:
+                if (x2 == x1) or (y2 == y1):    # vertical/horizontal line
+                    continue
+                slope = (y2 - y1) / (x2 - x1)
+                intercept = y1 - (slope * x1)
+                length = np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
+                if (abs(slope) < .4): # catch bad slopes/misread edges
+                    continue
+                if slope < 0:   # left hand line
+                    left_lines.append((slope, intercept))
+                    left_weights.append((length))
+                else:           # right hand line
+                    right_lines.append((slope, intercept))
+                    right_weights.append((length))
+    except TypeError:
+        return img
     
     # get the y coords for the lines
     y1 = img.shape[0]

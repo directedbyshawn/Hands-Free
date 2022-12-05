@@ -166,9 +166,10 @@ def classify_frame(model, frame):
     Return: predicted class, string of class, probability
     """
 
-    img = preprocessing(frame)
+    # img = preprocessing(frame) # for greyscaled image
+    # image = img.reshape(1, 32, 32, 1) # for greyscaled image
 
-    image = img.reshape(1, 32, 32, 1)
+    image = frame.reshape(1, 32, 32, 3) # for RGB image
     
     predicted_x = model.predict(image)
     predicted_class = np.argmax(predicted_x, axis=1)[0]
@@ -176,7 +177,7 @@ def classify_frame(model, frame):
     if SHOW_IMAGE_AND_PREDICTION_IN_TESTING:
         print("predicted sign: " + CLASSES_NAMES[predicted_class] + \
             " [" + str(predicted_class) + "]   " + str(np.ndarray.max(predicted_x)))
-        plt.imshow(img)
+        # plt.imshow(img)
         plt.imshow(frame)
 
         plt.axis('off')

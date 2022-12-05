@@ -53,4 +53,6 @@ OD_MODEL_PATH = 'models/faster_rcnn_5000_instances_12_epochs.pth'
 
 # traffic sign classification constants
 TSC_PREDICTION_THRESHOLD = 0.85
-TSC_MODEL_NAME = 'traffic_sign_recognition_eight-classes.h5'
+# TSC_PREDICTION_THRESHOLD = 0.90
+# TSC_MODEL_NAME = 'traffic_sign_recognition_eight-classes.h5' # greyscaled images
+TSC_MODEL_NAME = 'tsc_rgb_eightClasses.h5'

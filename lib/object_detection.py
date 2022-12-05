@@ -137,12 +137,15 @@ class ObjectDetector():
         image = Image.fromarray(cv_image)
         draw = ImageDraw.Draw(image)
 
+        sign_color = 'blue' if color == 'red' else 'red'
+
         for index, score in enumerate(scores):
             if score < cfg.OD_PREDICTION_THRESHOLD:
                 continue
             box = [int(boxes[index][i]) for i in range(len(boxes[index]))]
             label = labels[index]
-            draw.rectangle(box, outline=color)
+            use = sign_color if label not in self.__CLASSES else color
+            draw.rectangle(box, outline=use)
             draw.text((box[0], box[1]-12), f'{label} {scores[index]:.2f}', fill=color)
 
         return image

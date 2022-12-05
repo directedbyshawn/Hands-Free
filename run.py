@@ -248,7 +248,7 @@ def directory_images(path):
         predictions = object_detector.predict(original)
 
         # predict traffic signs and write it to predictions
-        predictions = predict_traffic_signs(image, predictions)
+        predictions = predict_traffic_signs(original, predictions)
 
         # export signs from image, write them to their own directory
         # signs = export_signs(original_path, predictions, output_dir)
@@ -304,7 +304,7 @@ def video(path):
     for index, frame in enumerate(frames):
     
         predictions = object_detector.predict(frame)
-        predictions = predict_traffic_signs(image, predictions)
+        predictions = predict_traffic_signs(frame, predictions)
 
         image = object_detector.annotate_image(frame, predictions, color='blue')
 

@@ -5,6 +5,7 @@ import os
 import imageio
 import glob
 import cv2
+import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
@@ -161,7 +162,7 @@ def test(model, X_test, y_test):
 
 def classify_frame(model, frame):
     """
-    Classify a road sign from an image/frame
+    Classify a road sign for a frame
     Input: frame
     Return: predicted class, string of class, probability
     """
@@ -171,12 +172,13 @@ def classify_frame(model, frame):
 
     image = frame.reshape(1, 32, 32, 3) # for RGB image
     
-    predicted_x = model.predict(image)
-    predicted_class = np.argmax(predicted_x, axis=1)[0]
+    predicted_x = model(image)
+    predicted_class = int(tf.math.argmax(predicted_x[0]))
+    accuracy = tf.reduce_max(predicted_x)
 
     if SHOW_IMAGE_AND_PREDICTION_IN_TESTING:
         print("predicted sign: " + CLASSES_NAMES[predicted_class] + \
-            " [" + str(predicted_class) + "]   " + str(np.ndarray.max(predicted_x)))
+            " [" + str(predicted_class) + "]   " + str(accuracy))
         # plt.imshow(img)
         plt.imshow(frame)
 
@@ -184,7 +186,7 @@ def classify_frame(model, frame):
         plt.show()
 
 
-    return predicted_class, CLASSES_NAMES[predicted_class], np.ndarray.max(predicted_x)
+    return predicted_class, CLASSES_NAMES[predicted_class], accuracy
 
 
 def preprocessing(image):

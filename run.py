@@ -3,9 +3,6 @@
     Driver for hands free image assistance.
 
 '''
-#/home/dmytro/fdab6841-90010ed5.jpg
-
-# /home/dmytro/fda535f4-b1d36ae2.jpg
 from lib.object_detection import ObjectDetector
 from sys import argv
 from os import listdir, mkdir, system, name
@@ -128,13 +125,18 @@ def export_signs(original_path, predictions, output_dir):
     return signs
 
 def predict_traffic_signs(image, predictions):
-    # Predict traffic signs and return new tuple of predictions
+    # Predict traffic signs and return a new tuple of predictions
 
     tsc_model = load_TSC_model(cfg.TSC_MODEL_NAME)
     labels, boxes, scores = predictions
     scores_list = scores.tolist()
 
     for index, label in enumerate(labels):
+
+        if scores[index] <= cfg.OD_PREDICTION_THRESHOLD:
+            break # the assumption is that scores are sorted in descending order
+
+
         if label == 'traffic sign' and scores[index] > cfg.OD_PREDICTION_THRESHOLD:
             box = boxes[index]
             box = [int(val) for val in box]

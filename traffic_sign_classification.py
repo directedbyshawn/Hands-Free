@@ -174,7 +174,7 @@ def classify_frame(model, frame):
     
     predicted_x = model(image)
     predicted_class = int(tf.math.argmax(predicted_x[0]))
-    accuracy = tf.reduce_max(predicted_x)
+    accuracy = tf.reduce_max(predicted_x).numpy()
 
     if SHOW_IMAGE_AND_PREDICTION_IN_TESTING:
         print("predicted sign: " + CLASSES_NAMES[predicted_class] + \

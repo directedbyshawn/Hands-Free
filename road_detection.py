@@ -172,7 +172,7 @@ def find_draw_edges(edge_img, img):
 	Main function to drive the program. Makes all of the needed function calls
 	and sets up the needed params to run the program
 '''
-def detect_lanes(file_names):
+def detect_lanes(imgs):
 	
 	# transform the image
     transformed_imgs = [prep_img(img) for img in imgs]

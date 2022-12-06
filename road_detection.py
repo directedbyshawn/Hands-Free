@@ -173,10 +173,6 @@ def find_draw_edges(edge_img, img):
 	and sets up the needed params to run the program
 '''
 def detect_lanes(file_names):
-    # load images
-    imgs = []
-    for filename in file_names:
-        imgs.append(plt.imread(filename))
 	
 	# transform the image
     transformed_imgs = [prep_img(img) for img in imgs]
@@ -198,7 +194,3 @@ def detect_lanes(file_names):
     # find and draw the lines
     outputs = [find_draw_edges(cropped, img) for cropped, img in zip(cropped_lanes, imgs)]
            
-	# show the image
-    show_images(outputs)
-    
-detect_lanes(FILENAMES)

@@ -16,6 +16,7 @@ import progressbar
 import matplotlib.pyplot as plt
 
 from traffic_sign_classification import classify_frame, load_TSC_model
+from road_detection import detect_lanes
 import torch
 
 '''
@@ -219,7 +220,11 @@ def single_image(path):
     #         cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
 
     image = object_detector.annotate_image(image, predictions, color='red')
-
+    
+    # detect lanes at this point
+    if cfg.DETECT_LANES:
+        image = detect_lanes([image])
+        
     # save final image
     image.save(f'{output_dir}/image.jpg')
 
@@ -249,11 +254,11 @@ def directory_images(path):
 
         # run image through object detection model
         predictions = object_detector.predict(original)
-
+        
         # predict traffic signs and write it to predictions
         if cfg.CLASSIFY_SIGNS:
             predictions = predict_traffic_signs(original, predictions)
-
+            
         # export signs from image, write them to their own directory
         # signs = export_signs(original_path, predictions, output_dir)
 
@@ -266,6 +271,11 @@ def directory_images(path):
 
         # save final image
         image = object_detector.annotate_image(original, predictions, color='red')
+        
+        # detect lanes at this point
+        if cfg.DETECT_LANES:
+            image = detect_lanes([image])
+            
         image.save(f'{output_dir}/image{index}.jpg')
 
         progress += increment
@@ -312,7 +322,11 @@ def video(path):
             predictions = predict_traffic_signs(frame, predictions)
 
         image = object_detector.annotate_image(frame, predictions, color='blue')
-
+        
+        # detect the lanes
+        if cfg.DETECT_LANES:
+            image = detect_lanes([image])
+            
         # convert to cv & write to buffer
         image_array = np.asarray(image)
         out.write(image_array)

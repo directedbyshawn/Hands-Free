@@ -3,17 +3,20 @@
     Driver for hands free image assistance.
 
 '''
-
 from lib.object_detection import ObjectDetector
 from sys import argv
-from os import listdir, mkdir
+from os import listdir, mkdir, system, name
 from os.path import exists, isfile, isdir
-from PIL import Image
 import numpy as np
 import json
 import config as cfg
 import cv2
 import progressbar
+
+import matplotlib.pyplot as plt
+
+from traffic_sign_classification import classify_frame, load_TSC_model
+import torch
 
 '''
 
@@ -121,6 +124,43 @@ def export_signs(original_path, predictions, output_dir):
 
     return signs
 
+def predict_traffic_signs(image, predictions):
+    # Predict traffic signs and return a new tuple of predictions
+
+    tsc_model = load_TSC_model(cfg.TSC_MODEL_NAME)
+    labels, boxes, scores = predictions
+    scores_list = scores.tolist()
+
+    for index, label in enumerate(labels):
+
+        if scores[index] <= cfg.OD_PREDICTION_THRESHOLD:
+            break # the assumption is that scores are sorted in descending order
+
+
+        if label == 'traffic sign' and scores[index] > cfg.OD_PREDICTION_THRESHOLD:
+            box = boxes[index]
+            box = [int(val) for val in box]
+            xmin, ymin, xmax, ymax = box
+
+            sign = image[ymin:ymax, xmin:xmax]
+            bordered_sign = add_border(sign)
+            downscaled_image = cv2.resize(bordered_sign, (cfg.SIGN_SIZE, cfg.SIGN_SIZE))
+
+            sign_class, sign_name, sign_accuracy = classify_frame(tsc_model, downscaled_image)
+
+            if sign_accuracy > cfg.TSC_PREDICTION_THRESHOLD:
+                if sign_name == 'other':
+                    # predict 'other' class as 'traffic sign'
+                    continue
+
+                labels[index] = sign_name
+                scores_list[index] = sign_accuracy
+             
+
+    predictions = (labels, boxes, torch.Tensor(scores_list))
+
+    return predictions
+
 def add_border(sign):
 
     height, width, _ = sign.shape
@@ -154,9 +194,12 @@ def add_border(sign):
 
 def single_image(path):
 
+    system('cls') if name == 'nt' else system('clear')
+    print(f'\n\nSingle image: {path}\n\n')
+
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
-    output_dir, index = make_output_dir()
+    output_dir, index = make_output_dir() # uncomment it
 
     # run image through object detection model.
     # predictions is a 3 tuple consisting of a list of labels, a
@@ -164,12 +207,16 @@ def single_image(path):
     image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
     predictions = object_detector.predict(image)
 
-    # export signs from image, write them to their own directory
-    signs = export_signs(path, predictions, output_dir)
-    if cfg.SAVE_SIGNS:
-        mkdir(f'{output_dir}/signs')
-        for i, sign in enumerate(signs):
-            cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
+    # predict traffic signs and write it to predictions
+    if cfg.CLASSIFY_SIGNS:
+        predictions = predict_traffic_signs(image, predictions)
+
+
+    # signs = export_signs(path, predictions, output_dir)
+    # if cfg.SAVE_SIGNS:
+    #     mkdir(f'{output_dir}/signs')
+    #     for i, sign in enumerate(signs):
+    #         cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
 
     image = object_detector.annotate_image(image, predictions, color='red')
 
@@ -177,6 +224,9 @@ def single_image(path):
     image.save(f'{output_dir}/image.jpg')
 
 def directory_images(path):
+
+    system('cls') if name == 'nt' else system('clear')
+    print(f'\n\nDirectory: {path}\n\n')
     
     # output dir is the path to the directory, index
     # is the folder number. ex. output/1, output/2, etc.
@@ -200,12 +250,19 @@ def directory_images(path):
         # run image through object detection model
         predictions = object_detector.predict(original)
 
+        # predict traffic signs and write it to predictions
+        if cfg.CLASSIFY_SIGNS:
+            predictions = predict_traffic_signs(original, predictions)
+
         # export signs from image, write them to their own directory
-        signs = export_signs(original_path, predictions, output_dir)
-        if cfg.SAVE_SIGNS:
-            mkdir(f'{output_dir}/signs')
-            for i, sign in enumerate(signs):
-                cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
+        # signs = export_signs(original_path, predictions, output_dir)
+
+        # change name in prediction list. It is tuple ((predictions, bb, scores))
+
+        # if cfg.SAVE_SIGNS:
+        #     mkdir(f'{output_dir}/signs') if not exists(f'{output_dir}/signs') else None
+        #     for i, sign in enumerate(signs):
+        #         cv2.imwrite(f'{output_dir}/signs/image{index}-sign{i}.jpg', sign)
 
         # save final image
         image = object_detector.annotate_image(original, predictions, color='red')
@@ -219,6 +276,9 @@ def directory_images(path):
     bar.finish()
 
 def video(path):
+
+    system('cls') if name == 'nt' else system('clear')
+    print(f'\n\nVideo: {path}\n\n')
     
     original = cv2.VideoCapture(path)
 
@@ -246,8 +306,11 @@ def video(path):
 
     # run each frame through model, write frame with object detection to buffer
     for index, frame in enumerate(frames):
-    
+        
         predictions = object_detector.predict(frame)
+        if cfg.CLASSIFY_SIGNS:
+            predictions = predict_traffic_signs(frame, predictions)
+
         image = object_detector.annotate_image(frame, predictions, color='blue')
 
         # convert to cv & write to buffer

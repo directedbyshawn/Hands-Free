@@ -13,9 +13,9 @@ TRAIN_OBSTACLES = True
 TRAIN_LANES = False
 TRAIN_SIGNS = False
 
-TEST_OBSTACLES = True
-TEST_LANES = False
-TEST_SIGNS = False
+DETECT_OBJECTS = True
+CLASSIFY_SIGNS = True
+DETECT_LANES = False
 
 OD_TRAINING_SIZE = 30000
 OD_VALIDATION_SIZE = 3000
@@ -45,8 +45,14 @@ OD_HYPER = {
 }
 
 SIGN_SIZE = 32
-SAVE_SIGNS = False
+SAVE_SIGNS = True
 
-OD_PREDICTION_THRESHOLD = 0.7
+OD_PREDICTION_THRESHOLD = 0.85
 
 OD_MODEL_PATH = 'models/faster_rcnn_5000_instances_12_epochs.pth'
+
+# traffic sign classification constants
+TSC_PREDICTION_THRESHOLD = 0.85
+# TSC_PREDICTION_THRESHOLD = 0.90
+# TSC_MODEL_NAME = 'traffic_sign_recognition_eight-classes.h5' # greyscaled images
+TSC_MODEL_NAME = 'tsc_rgb_eightClasses.h5'

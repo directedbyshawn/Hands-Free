@@ -206,7 +206,8 @@ def single_image(path):
     predictions = object_detector.predict(image)
 
     # predict traffic signs and write it to predictions
-    predictions = predict_traffic_signs(image, predictions)
+    if cfg.CLASSIFY_SIGNS:
+        predictions = predict_traffic_signs(image, predictions)
 
 
     # signs = export_signs(path, predictions, output_dir)
@@ -248,7 +249,8 @@ def directory_images(path):
         predictions = object_detector.predict(original)
 
         # predict traffic signs and write it to predictions
-        predictions = predict_traffic_signs(original, predictions)
+        if cfg.CLASSIFY_SIGNS:
+            predictions = predict_traffic_signs(original, predictions)
 
         # export signs from image, write them to their own directory
         # signs = export_signs(original_path, predictions, output_dir)
@@ -302,9 +304,10 @@ def video(path):
 
     # run each frame through model, write frame with object detection to buffer
     for index, frame in enumerate(frames):
-    
+        
         predictions = object_detector.predict(frame)
-        predictions = predict_traffic_signs(frame, predictions)
+        if cfg.CLASSIFY_SIGNS:
+            predictions = predict_traffic_signs(frame, predictions)
 
         image = object_detector.annotate_image(frame, predictions, color='blue')
 

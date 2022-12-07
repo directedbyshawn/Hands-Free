@@ -16,8 +16,8 @@ from time import sleep
 
 import matplotlib.pyplot as plt
 
-from traffic_sign_classification import classify_frame, load_TSC_model
-from road_detection import detect_lanes
+from lib.sign_classification import classify_frame, load_TSC_model
+from lib.lane_detection import detect_lanes
 import torch
 
 '''

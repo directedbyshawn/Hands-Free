@@ -126,6 +126,25 @@ def export_signs(original_path, predictions, output_dir):
 
     return signs
 
+def export_signs_from_frame(frame, predictions):
+
+    ''' Export signs to output directory '''
+
+    signs = []
+    labels, boxes, scores = predictions
+    for index, label in enumerate(labels):
+        if label == 'traffic sign' and scores[index] > cfg.OD_PREDICTION_THRESHOLD:
+            box = boxes[index]
+            box = [int(val) for val in box]
+            xmin, ymin, xmax, ymax = box
+            sign = frame[ymin:ymax, xmin:xmax]
+            bordered_sign = add_border(sign)
+            downscaled_image = cv2.resize(bordered_sign, (cfg.SIGN_SIZE, cfg.SIGN_SIZE))
+            signs.append(downscaled_image)
+
+    return signs
+
+
 def predict_traffic_signs(image, predictions):
     # Predict traffic signs and return a new tuple of predictions
 
@@ -303,7 +322,6 @@ def video(path):
     while cont:
         ret, frame = original.read()
         if ret:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frames.append(frame)
         else:
             cont = False
@@ -318,9 +336,9 @@ def video(path):
     # run each frame through model, write frame with object detection to buffer
     for index, frame in enumerate(frames):
         
-        predictions = object_detector.predict(frame)
+        predictions = object_detector.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         if cfg.CLASSIFY_SIGNS:
-            predictions = predict_traffic_signs(frame, predictions)
+            predictions = predict_traffic_signs(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), predictions)
 
         image = object_detector.annotate_image(frame, predictions, color='blue')
         

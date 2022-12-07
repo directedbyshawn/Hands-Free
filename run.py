@@ -12,6 +12,7 @@ import json
 import config as cfg
 import cv2
 import progressbar
+from time import sleep
 
 import matplotlib.pyplot as plt
 
@@ -303,6 +304,7 @@ def video(path):
     while cont:
         ret, frame = original.read()
         if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frames.append(frame)
         else:
             cont = False
@@ -327,15 +329,17 @@ def video(path):
         if cfg.DETECT_LANES:
             image = detect_lanes([image])
             
-        # convert to cv & write to buffer
+        # convert to RGBcv & write to buffer
         image_array = np.asarray(image)
-        out.write(image_array)
+        out_image = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        out_image = cv2.cvtColor(out_image, cv2.COLOR_RGB2BGR)
+        out.write(out_image)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         
-        progress += increment
-        bar.update(progress)
+        progress += increment 
+        bar.update(progress if progress < 100 else 100 )
 
     bar.finish()
 

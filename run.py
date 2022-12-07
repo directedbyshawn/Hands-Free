@@ -208,11 +208,14 @@ def single_image(path):
     # list of bounding box coordinates, and a list of confidence
     image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
     predictions = object_detector.predict(image)
-
+    
+    # detect lanes at this point
+    if cfg.DETECT_LANES:
+        image = detect_lanes([image])
+        
     # predict traffic signs and write it to predictions
     if cfg.CLASSIFY_SIGNS:
         predictions = predict_traffic_signs(image, predictions)
-
 
     # signs = export_signs(path, predictions, output_dir)
     # if cfg.SAVE_SIGNS:
@@ -221,11 +224,7 @@ def single_image(path):
     #         cv2.imwrite(f'{output_dir}/signs/sign{i}.jpg', sign)
 
     image = object_detector.annotate_image(image, predictions, color='red')
-    
-    # detect lanes at this point
-    if cfg.DETECT_LANES:
-        image = detect_lanes([image])
-        
+       
     # save final image
     image.save(f'{output_dir}/image.jpg')
 

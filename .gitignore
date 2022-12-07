@@ -7,3 +7,4 @@ data/*
 models/*
 !*/README.md
 test
+*.jpg

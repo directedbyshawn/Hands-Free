@@ -154,10 +154,6 @@ def predict_traffic_signs(image, predictions):
 
     for index, label in enumerate(labels):
 
-        if scores[index] <= cfg.OD_PREDICTION_THRESHOLD:
-            break # the assumption is that scores are sorted in descending order
-
-
         if label == 'traffic sign' and scores[index] > cfg.OD_PREDICTION_THRESHOLD:
             box = boxes[index]
             box = [int(val) for val in box]
@@ -304,6 +300,10 @@ def directory_images(path):
 
     bar.finish()
 
+def to_frames(tuple):
+
+    return (tuple[0]*60+tuple[1])*24
+
 def video(path):
 
     system('cls') if name == 'nt' else system('clear')
@@ -319,12 +319,29 @@ def video(path):
     # save each frame from video to array
     frames = []
     cont = True
+    clip = False
+    start_time = (3, 30)
+    end_time = (3, 45)
+    assert to_frames(start_time) < to_frames(end_time)
+    count = 0
+
     while cont:
-        ret, frame = original.read()
-        if ret:
-            frames.append(frame)
+        if clip:
+            ret, frame = original.read()
+            if ret:
+                if count >= to_frames(start_time) and count <= to_frames(end_time):
+                    frames.append(frame)
+                if count > to_frames(end_time):
+                    cont = False
+                count += 1
+            else:
+                cont = False
         else:
-            cont = False
+            ret, frame = original.read()
+            if ret:
+                frames.append(frame)
+            else:
+                cont = False
     
     # progress bar
     bar = progressbar.ProgressBar(maxval=100, \

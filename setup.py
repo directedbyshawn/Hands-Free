@@ -24,6 +24,12 @@ def main():
                 os.mkdir('data/labels/training')
             if not os.path.exists('data/labels/validation'):
                 os.mkdir('data/labels/validation')
+        if not os.path.exists('models'):
+            os.mkdir('models')
+        if not os.path.exists('output'):
+            os.mkdir('output')
+        if not os.path.exists('input'):
+            os.mkdir('input')
 
     print('setup complete')
     

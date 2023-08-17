@@ -2,6 +2,10 @@
 
 [![Contributors][contributors-shield]][contributors-url]
 [![MIT License][license-shield]][license-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
 <br />
 <div align="center">
@@ -138,5 +142,13 @@ Resources that made this project possible.
 [contributors-url]: https://github.com/directedbyshawn/Hands-Free/graphs/contributors
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
 [license-url]: https://github.com/directedbyshawn/Hands-Free/LICENSE.txt
+[forks-shield]: https://img.shields.io/github/forks/directedbyshawn/Hands-Free.svg?style=for-the-badge
+[forks-url]: https://github.com/directedbyshawn/Hands-Free/network/members
+[stars-shield]: https://img.shields.io/github/stars/directedbyshawn/Hands-Free.svg?style=for-the-badge
+[stars-url]: https://github.com/directedbyshawn/Hands-Free/stargazers
+[issues-shield]: https://img.shields.io/github/issues/directedbyshawn/Hands-Free.svg?style=for-the-badge
+[issues-url]: https://github.com/directedbyshawn/Hands-Free/issues
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/directedbyshawn
+
+

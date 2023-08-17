@@ -39,7 +39,7 @@ Due to time restrictions, we decided to focus on three main ideas
 
 We wanted to detect and classify 10 classes of objects most frequently seen on the road (cars, traffic signs, pedestrians, etc). In the stills and the video demo found <a href="#demo">below</a>, red boxes identify objects that were successfully classified into one of 10 classes by our model running Faster-RCNN. Above the box is the label of the object, followed by the confidence of the model in its decision. If the object was classified as a traffic sign, it is then passed to a separate convolutional neural network (CNN) that attempts to further classify the type of traffic sign. If it is able to classify the type of traffic sign with a specified level of confidence, then the box is blue instead of red.
 
-We learned that is quite difficult to perform accurate lane detection on most roads. There are numerous conditions such as fading lines and winding roads that lead to inconsistent results. Given more time we may have been able to find a stronger solution, but due to time restrictions, we were only able to get satisfactory results on the highway videos when running our lane detection algorithm.
+We learned that is quite difficult to perform accurate lane detection on most roads. There are numerous conditions such as fading lines and winding roads that lead to inconsistent results. Given more time we may have been able to find a stronger solution; However due to time restrictions, we were only able to get satisfactory results on the highway videos when running our lane detection algorithm.
 
 <br />
 <div align="center">
@@ -113,7 +113,6 @@ LinkedIn - [linkedin.com/in/directedbyshawn](https://www.linkedin.com/in/directe
 <!-- ACKNOWLEDGMENTS -->
 ## Resources
 
-Resources that made this project possible.
 ### Training data
 * [Berkeley Deep Drive Dataset](https://deepdrive.berkeley.edu/)
 

@@ -4,6 +4,7 @@ venv
 input
 output
 data
-models
+models/old
+models/faster_rcnn_5000_instances_12_epochs.pth
 test
 video

@@ -10,7 +10,7 @@
 <br />
 <div align="center">
   <a href="https://www.gardeners.com">
-    <img src="images/logo.png" alt="Logo">
+    <img src="images/logo.png" alt="Logo" width="500px">
   </a>
 
   <h3 align="center">Hands Free: Image Analysis</h3>

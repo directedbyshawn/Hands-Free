@@ -1,18 +1,10 @@
-'''
-	ML Group 8
-	The goal of this portion of the project is focused on detecting edges of the road.
-	This may be extended to lane detection, rather than just road edge line detection.
-	The ability to detect where the edges of the road are or where one's lane is, is an
-	important component of autonomous driving. It is the core of having a car drive on its
-	own.
-'''
 import cv2 as cv
 from matplotlib import pyplot as plt
 import numpy as np
 import os
 
-# Constants needed
-FILENAMES = ['YellowUnderShade.jpg', 'YellowWhite.jpg'] # list of photos to load
+
+FILENAMES = ['YellowUnderShade.jpg', 'YellowWhite.jpg']
 
 '''
 	Function to display the images of the road. Can be called before
@@ -168,10 +160,6 @@ def find_draw_edges(edge_img, img):
             
     return cv.addWeighted(img, 1.0, line_img, .95, 0.0)
     
-'''
-	Main function to drive the program. Makes all of the needed function calls
-	and sets up the needed params to run the program
-'''
 def detect_lanes(imgs):
     imgs = [np.array(img) for img in imgs]
 

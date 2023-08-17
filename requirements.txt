@@ -2,7 +2,6 @@ pillow
 numpy
 matplotlib
 torch
-torchvision
 torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
 detecto
 progressbar
@@ -10,3 +9,5 @@ imageio
 scikit-learn
 keras
 tensorflow
+imageio
+opencv-python

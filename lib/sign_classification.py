@@ -1,12 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
 import imageio
 import glob
 import cv2
 import tensorflow as tf
-
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
@@ -119,7 +117,6 @@ def load_training_data():
     return X_train, X_valid, X_test, y_train, y_valid, y_test
 
 def test_on_different_dataset():
-    # REDO?
     predict_images = load_predict()
     for orig_img in predict_images:
         img = preprocessing(orig_img)
@@ -135,7 +132,6 @@ def test_on_different_dataset():
             plt.show()
 
 def test(model, X_test, y_test):
-    # REDO?
     """
     Test the model on dataset   
     """
@@ -269,8 +265,3 @@ if __name__ == "__main__":
     img_name = "image195-sign3.jpg"
     frame = imageio.v2.imread(path+img_name)
     classify_frame(model, frame)
-
-
-    
-
-    

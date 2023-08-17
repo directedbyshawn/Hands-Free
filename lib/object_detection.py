@@ -1,22 +1,13 @@
-'''
-
-    Model to detect obstacles on the road, such as 
-    pedestrians, vehicles, and other 
-
-'''
-
 from .instance_data import Instance, Object, Box, Type
 from xml.etree.ElementTree import Element, SubElement, ElementTree
 import matplotlib.pyplot as plt
 import os
-from PIL import ImageOps, Image, ImageFont, ImageDraw, ImageEnhance
-from detecto import core, utils, visualize
-from detecto.visualize import show_labeled_image, plot_prediction_grid
-from shutil import rmtree, copyfile, copy
+from PIL import Image, ImageDraw
+from detecto import core
+from shutil import rmtree
 import torch
 import config as cfg
 from time import sleep
-from torchvision import transforms
 
 class ObjectDetector():
 
